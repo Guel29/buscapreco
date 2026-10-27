@@ -1,0 +1,685 @@
+{
+  "centralProducts": [
+    {
+      "id": "1_5001_78910005001",
+      "id_loja": 1,
+      "codigo_interno": "5001",
+      "codigo_barras": "78910005001",
+      "descricao": "AÇÚCAR REFINADO UNIÃO 1KG",
+      "produto": "AÇÚCAR REFINADO UNIÃO 1KG",
+      "preco": 4.89,
+      "preco_venda": 4.89,
+      "embalagem": "PCT",
+      "ncm": "00000000",
+      "ativo": true,
+      "hash": "1659ca41124013782a884720a37fa2ec5e873ba73741e545ff30c0280961aea5",
+      "ultima_sincronizacao": "2026-10-06T00:52:35.020Z",
+      "atualizado_em": "2026-10-06T00:52:35.020Z"
+    },
+    {
+      "id": "1_5002_78910005002",
+      "id_loja": 1,
+      "codigo_interno": "5002",
+      "codigo_barras": "78910005002",
+      "descricao": "CAFÉ TORRADO E MOÍDO 500G",
+      "produto": "CAFÉ TORRADO E MOÍDO 500G",
+      "preco": 16.9,
+      "preco_venda": 16.9,
+      "embalagem": "CX",
+      "ncm": "00000000",
+      "ativo": true,
+      "hash": "2466e44b2a6b39df9e704e7b9cb5d5cbc08e7eac2dd0c18c95c685233328937b",
+      "ultima_sincronizacao": "2026-10-06T00:52:35.020Z",
+      "atualizado_em": "2026-10-06T00:52:35.020Z"
+    }
+  ],
+  "stores": [
+    {
+      "id": 1,
+      "nome": "Smart O Varejao · Loja 01 (Matriz)",
+      "cnpj": "60.252.165/0001-82",
+      "endereco": "Praça Joel Muniz de Almeida, 38 Centro Umburanas Ba",
+      "ativa": true
+    },
+    {
+      "id": 2,
+      "nome": "Supermercado Modelo - Loja 02 (Filial Bairro)",
+      "cnpj": "12.345.678/0002-71",
+      "endereco": "Rua das Flores, 420 - Jardim",
+      "ativa": true
+    }
+  ],
+  "terminals": [
+    {
+      "id": "term-01",
+      "nome": "CONSULTA 01 - ENTRADA PRINCIPAL",
+      "id_loja": 1,
+      "identificador": "TERM-ENTRADA-01",
+      "modelo_etiqueta_padrao_id": "gondola-dupla-100x30",
+      "impressora_id": "argox-os214-01",
+      "ultima_conexao": "2026-10-06T00:25:18.887Z",
+      "ultima_sincronizacao": "2026-10-06T00:25:18.887Z",
+      "status": "ONLINE",
+      "versao": "2.4.0"
+    },
+    {
+      "id": "term-02",
+      "nome": "CONSULTA 02 - CORREDOR 04 (BEBIDAS)",
+      "id_loja": 1,
+      "identificador": "TERM-CORREDOR-02",
+      "modelo_etiqueta_padrao_id": "gondola-dupla-100x30",
+      "impressora_id": "argox-os214-01",
+      "ultima_conexao": "2026-10-06T00:25:18.887Z",
+      "ultima_sincronizacao": "2026-10-06T00:25:18.887Z",
+      "status": "ONLINE",
+      "versao": "2.4.0"
+    },
+    {
+      "id": "term-03",
+      "nome": "TERMINAL GÔNDOLA - BALCÃO DE FRIOS",
+      "id_loja": 1,
+      "identificador": "TERM-FRIOS-03",
+      "modelo_etiqueta_padrao_id": "gondola-dupla-100x30",
+      "impressora_id": "argox-os214-01",
+      "ultima_conexao": "2026-10-06T00:25:18.887Z",
+      "ultima_sincronizacao": "2026-10-06T00:25:18.887Z",
+      "status": "ONLINE",
+      "versao": "2.4.0"
+    }
+  ],
+  "syncLogs": [
+    {
+      "id": "sync-1791247750730",
+      "data_hora": "2026-10-06T00:49:10.730Z",
+      "status": "SUCESSO",
+      "produtos_analisados": 0,
+      "produtos_atualizados": 0,
+      "produtos_novos": 0,
+      "tempo_ms": 0,
+      "erros": "",
+      "id_loja": 1
+    },
+    {
+      "id": "sync-1791247746191",
+      "data_hora": "2026-10-06T00:49:06.191Z",
+      "status": "SUCESSO",
+      "produtos_analisados": 0,
+      "produtos_atualizados": 0,
+      "produtos_novos": 0,
+      "tempo_ms": 0,
+      "erros": "",
+      "id_loja": 1
+    },
+    {
+      "id": "sync-1791247703032",
+      "data_hora": "2026-10-06T00:48:23.032Z",
+      "status": "SUCESSO",
+      "produtos_analisados": 0,
+      "produtos_atualizados": 0,
+      "produtos_novos": 0,
+      "tempo_ms": 0,
+      "erros": "",
+      "id_loja": 1
+    },
+    {
+      "id": "sync-1791247700200",
+      "data_hora": "2026-10-06T00:48:20.200Z",
+      "status": "SUCESSO",
+      "produtos_analisados": 0,
+      "produtos_atualizados": 0,
+      "produtos_novos": 0,
+      "tempo_ms": 0,
+      "erros": "",
+      "id_loja": 1
+    },
+    {
+      "id": "sync-1791247675006",
+      "data_hora": "2026-10-06T00:47:55.006Z",
+      "status": "SUCESSO",
+      "produtos_analisados": 0,
+      "produtos_atualizados": 0,
+      "produtos_novos": 0,
+      "tempo_ms": 0,
+      "erros": "",
+      "id_loja": 1
+    },
+    {
+      "id": "sync-1791247643138",
+      "data_hora": "2026-10-06T00:47:23.138Z",
+      "status": "SUCESSO",
+      "produtos_analisados": 0,
+      "produtos_atualizados": 0,
+      "produtos_novos": 0,
+      "tempo_ms": 0,
+      "erros": "",
+      "id_loja": 1
+    },
+    {
+      "id": "sync-1791247478813",
+      "data_hora": "2026-10-06T00:44:38.813Z",
+      "status": "SUCESSO",
+      "produtos_analisados": 0,
+      "produtos_atualizados": 0,
+      "produtos_novos": 0,
+      "tempo_ms": 0,
+      "erros": "",
+      "id_loja": 1
+    },
+    {
+      "id": "sync-1791247306857",
+      "data_hora": "2026-10-06T00:41:46.857Z",
+      "status": "SUCESSO",
+      "produtos_analisados": 0,
+      "produtos_atualizados": 0,
+      "produtos_novos": 0,
+      "tempo_ms": 0,
+      "erros": "",
+      "id_loja": 1
+    },
+    {
+      "id": "sync-1791247057511",
+      "data_hora": "2026-10-06T00:37:37.511Z",
+      "status": "SUCESSO",
+      "produtos_analisados": 0,
+      "produtos_atualizados": 0,
+      "produtos_novos": 0,
+      "tempo_ms": 0,
+      "erros": "",
+      "id_loja": 1
+    },
+    {
+      "id": "sync-1791246634575",
+      "data_hora": "2026-10-06T00:30:34.575Z",
+      "status": "SUCESSO",
+      "produtos_analisados": 0,
+      "produtos_atualizados": 0,
+      "produtos_novos": 0,
+      "tempo_ms": 0,
+      "erros": "",
+      "id_loja": 1
+    },
+    {
+      "id": "sync-1791245092569",
+      "data_hora": "2026-10-06T00:04:52.569Z",
+      "status": "SUCESSO",
+      "produtos_analisados": 0,
+      "produtos_atualizados": 0,
+      "produtos_novos": 0,
+      "tempo_ms": 0,
+      "erros": "",
+      "id_loja": 1
+    },
+    {
+      "id": "sync-1791244722240",
+      "data_hora": "2026-10-05T23:58:42.240Z",
+      "status": "SUCESSO",
+      "produtos_analisados": 2,
+      "produtos_atualizados": 0,
+      "produtos_novos": 2,
+      "produtos_desativados": 0,
+      "tempo_ms": 0,
+      "erros": "",
+      "id_loja": 1
+    },
+    {
+      "id": "sync-1791243199850",
+      "data_hora": "2026-10-05T23:33:19.850Z",
+      "status": "SUCESSO",
+      "produtos_analisados": 0,
+      "produtos_atualizados": 0,
+      "produtos_novos": 0,
+      "tempo_ms": 0,
+      "erros": "",
+      "id_loja": 1
+    },
+    {
+      "id": "sync-1791241259231",
+      "data_hora": "2026-10-05T23:00:59.231Z",
+      "status": "SUCESSO",
+      "produtos_analisados": 0,
+      "produtos_atualizados": 0,
+      "produtos_novos": 0,
+      "tempo_ms": 0,
+      "erros": "",
+      "id_loja": 1
+    }
+  ],
+  "systemLogs": [
+    {
+      "id": "log-1791247750730",
+      "data_hora": "2026-10-06T00:49:10.730Z",
+      "tipo": "SINCRONIZACAO",
+      "mensagem": "Sincronização Loja 1: 0 analisados, 0 atualizados, 0 novos (0ms).",
+      "detalhes": {
+        "id": "sync-1791247750730",
+        "data_hora": "2026-10-06T00:49:10.730Z",
+        "status": "SUCESSO",
+        "produtos_analisados": 0,
+        "produtos_atualizados": 0,
+        "produtos_novos": 0,
+        "tempo_ms": 0,
+        "erros": "",
+        "id_loja": 1
+      }
+    },
+    {
+      "id": "log-1791247746191",
+      "data_hora": "2026-10-06T00:49:06.191Z",
+      "tipo": "SINCRONIZACAO",
+      "mensagem": "Sincronização Loja 1: 0 analisados, 0 atualizados, 0 novos (0ms).",
+      "detalhes": {
+        "id": "sync-1791247746191",
+        "data_hora": "2026-10-06T00:49:06.191Z",
+        "status": "SUCESSO",
+        "produtos_analisados": 0,
+        "produtos_atualizados": 0,
+        "produtos_novos": 0,
+        "tempo_ms": 0,
+        "erros": "",
+        "id_loja": 1
+      }
+    },
+    {
+      "id": "log-1791247703032",
+      "data_hora": "2026-10-06T00:48:23.032Z",
+      "tipo": "SINCRONIZACAO",
+      "mensagem": "Sincronização Loja 1: 0 analisados, 0 atualizados, 0 novos (0ms).",
+      "detalhes": {
+        "id": "sync-1791247703032",
+        "data_hora": "2026-10-06T00:48:23.032Z",
+        "status": "SUCESSO",
+        "produtos_analisados": 0,
+        "produtos_atualizados": 0,
+        "produtos_novos": 0,
+        "tempo_ms": 0,
+        "erros": "",
+        "id_loja": 1
+      }
+    },
+    {
+      "id": "log-1791247700200",
+      "data_hora": "2026-10-06T00:48:20.200Z",
+      "tipo": "SINCRONIZACAO",
+      "mensagem": "Sincronização Loja 1: 0 analisados, 0 atualizados, 0 novos (0ms).",
+      "detalhes": {
+        "id": "sync-1791247700200",
+        "data_hora": "2026-10-06T00:48:20.200Z",
+        "status": "SUCESSO",
+        "produtos_analisados": 0,
+        "produtos_atualizados": 0,
+        "produtos_novos": 0,
+        "tempo_ms": 0,
+        "erros": "",
+        "id_loja": 1
+      }
+    },
+    {
+      "id": "log-1791247675006",
+      "data_hora": "2026-10-06T00:47:55.006Z",
+      "tipo": "SINCRONIZACAO",
+      "mensagem": "Sincronização Loja 1: 0 analisados, 0 atualizados, 0 novos (0ms).",
+      "detalhes": {
+        "id": "sync-1791247675006",
+        "data_hora": "2026-10-06T00:47:55.006Z",
+        "status": "SUCESSO",
+        "produtos_analisados": 0,
+        "produtos_atualizados": 0,
+        "produtos_novos": 0,
+        "tempo_ms": 0,
+        "erros": "",
+        "id_loja": 1
+      }
+    },
+    {
+      "id": "log-pnf-1791247663604",
+      "data_hora": "2026-10-06T00:47:43.604Z",
+      "tipo": "PRODUTO_NAO_ENCONTRADO",
+      "mensagem": "Produto não localizado para código: \"e\" na Loja 1."
+    },
+    {
+      "id": "log-pnf-1791247652638",
+      "data_hora": "2026-10-06T00:47:32.638Z",
+      "tipo": "PRODUTO_NAO_ENCONTRADO",
+      "mensagem": "Produto não localizado para código: \"6\" na Loja 1."
+    },
+    {
+      "id": "log-1791247643138",
+      "data_hora": "2026-10-06T00:47:23.138Z",
+      "tipo": "SINCRONIZACAO",
+      "mensagem": "Sincronização Loja 1: 0 analisados, 0 atualizados, 0 novos (0ms).",
+      "detalhes": {
+        "id": "sync-1791247643138",
+        "data_hora": "2026-10-06T00:47:23.138Z",
+        "status": "SUCESSO",
+        "produtos_analisados": 0,
+        "produtos_atualizados": 0,
+        "produtos_novos": 0,
+        "tempo_ms": 0,
+        "erros": "",
+        "id_loja": 1
+      }
+    },
+    {
+      "id": "log-cfg-1791247558841",
+      "data_hora": "2026-10-06T00:45:58.841Z",
+      "tipo": "CONFIGURACAO",
+      "mensagem": "Configurações do ERP salvas (Host: localhost:8745, Banco: vr, Loja: 1)."
+    },
+    {
+      "id": "log-cfg-1791247553055",
+      "data_hora": "2026-10-06T00:45:53.055Z",
+      "tipo": "CONFIGURACAO",
+      "mensagem": "Configurações do ERP salvas (Host: localhost:8745, Banco: vr, Loja: 1)."
+    },
+    {
+      "id": "log-cfg-1791247532218",
+      "data_hora": "2026-10-06T00:45:32.218Z",
+      "tipo": "CONFIGURACAO",
+      "mensagem": "Configurações do ERP salvas (Host: localhost:8745, Banco: vr, Loja: 1)."
+    },
+    {
+      "id": "log-1791247478813",
+      "data_hora": "2026-10-06T00:44:38.813Z",
+      "tipo": "SINCRONIZACAO",
+      "mensagem": "Sincronização Loja 1: 0 analisados, 0 atualizados, 0 novos (0ms).",
+      "detalhes": {
+        "id": "sync-1791247478813",
+        "data_hora": "2026-10-06T00:44:38.813Z",
+        "status": "SUCESSO",
+        "produtos_analisados": 0,
+        "produtos_atualizados": 0,
+        "produtos_novos": 0,
+        "tempo_ms": 0,
+        "erros": "",
+        "id_loja": 1
+      }
+    },
+    {
+      "id": "log-store-upd-1791247375236",
+      "data_hora": "2026-10-06T00:42:55.236Z",
+      "tipo": "CONFIGURACAO",
+      "mensagem": "Cadastro da Loja 1 alterado para: \"Smart O Varejao · Loja 01 (Matriz)\"."
+    },
+    {
+      "id": "log-store-upd-1791247349205",
+      "data_hora": "2026-10-06T00:42:29.205Z",
+      "tipo": "CONFIGURACAO",
+      "mensagem": "Cadastro da Loja 1 alterado para: \"Smart O Varejao · Loja 01 (Matriz)\"."
+    },
+    {
+      "id": "log-prt-1791247307361",
+      "data_hora": "2026-10-06T00:41:47.361Z",
+      "tipo": "IMPRESSAO",
+      "mensagem": "Impressão direta: Modelo \"GÔNDOLA DUPLA (100 × 30 mm · 2 Produtos)\" (2 produtos) enviada para argox-os214-01.",
+      "detalhes": {
+        "id": "job-1791247307360-414",
+        "data_hora": "2026-10-06T00:41:47.360Z",
+        "terminal_id": "TERM-01",
+        "modelo_id": "gondola-dupla-100x30",
+        "modelo_nome": "GÔNDOLA DUPLA (100 × 30 mm · 2 Produtos)",
+        "impressora_id": "argox-os214-01",
+        "produtos": [
+          {
+            "codigo_interno": "1548",
+            "codigo_barras": "7891000100103",
+            "descricao": "ARROZ DULAR 1KG",
+            "preco": 4.48
+          },
+          {
+            "codigo_interno": "2042",
+            "codigo_barras": "7891000200204",
+            "descricao": "FEIJÃO SMART 1KG",
+            "preco": 6.99
+          }
+        ],
+        "status": "IMPRESSO",
+        "comandos_raw": "N\nD10\nS3\nq799\nQ240,24\nA16,16,0,3,1,1,N,\"ARROZ DULAR 1KG\"\nA16,76,0,2,1,1,N,\"UN\"\nA16,124,0,3,1,1,N,\"R$\"\nA68,104,0,4,2,3,N,\"4\"\nA200,104,0,3,1,1,N,\",48\"\nB16,176,0,E30,2,4,52,B,\"7891000100103\"\nA248,196,0,2,1,1,N,\"Cód: 1548\"\nLO396,12,3,216\nA416,16,0,3,1,1,N,\"FEIJÃO SMART 1KG\"\nA416,76,0,2,1,1,N,\"UN\"\nA416,124,0,3,1,1,N,\"R$\"\nA468,104,0,4,2,3,N,\"6\"\nA599,104,0,3,1,1,N,\",99\"\nB416,176,0,E30,2,4,52,B,\"7891000200204\"\nA647,196,0,2,1,1,N,\"Cód: 2042\"\nP1",
+        "tentativas": 1
+      }
+    },
+    {
+      "id": "log-prt-1791247307193",
+      "data_hora": "2026-10-06T00:41:47.193Z",
+      "tipo": "IMPRESSAO",
+      "mensagem": "Impressão direta: Modelo \"GÔNDOLA DUPLA (100 × 30 mm · 2 Produtos)\" (1 produtos) enviada para argox-os214-01.",
+      "detalhes": {
+        "id": "job-1791247307193-146",
+        "data_hora": "2026-10-06T00:41:47.193Z",
+        "terminal_id": "TERM-01",
+        "modelo_id": "gondola-dupla-100x30",
+        "modelo_nome": "GÔNDOLA DUPLA (100 × 30 mm · 2 Produtos)",
+        "impressora_id": "argox-os214-01",
+        "produtos": [
+          {
+            "codigo_interno": "1548",
+            "codigo_barras": "7891000100103",
+            "descricao": "ARROZ DULAR 1KG",
+            "preco": 4.48
+          }
+        ],
+        "status": "IMPRESSO",
+        "comandos_raw": "N\nD10\nS3\nq799\nQ240,24\nA16,16,0,3,1,1,N,\"ARROZ DULAR 1KG\"\nA16,76,0,2,1,1,N,\"UN\"\nA16,124,0,3,1,1,N,\"R$\"\nA68,104,0,4,2,3,N,\"4\"\nA200,104,0,3,1,1,N,\",48\"\nB16,176,0,E30,2,4,52,B,\"7891000100103\"\nA248,196,0,2,1,1,N,\"Cód: 1548\"\nLO396,12,3,216\nA416,16,0,3,1,1,N,\"PRODUTO 2 EXEMPLO\"\nA416,76,0,2,1,1,N,\"UN\"\nA416,124,0,3,1,1,N,\"R$\"\nA468,104,0,4,2,3,N,\"6\"\nA599,104,0,3,1,1,N,\",99\"\nB416,176,0,E30,2,4,52,B,\"7891000000000\"\nA647,196,0,2,1,1,N,\"Cód: 0000\"\nP1",
+        "tentativas": 1
+      }
+    },
+    {
+      "id": "log-1791247306857",
+      "data_hora": "2026-10-06T00:41:46.857Z",
+      "tipo": "SINCRONIZACAO",
+      "mensagem": "Sincronização Loja 1: 0 analisados, 0 atualizados, 0 novos (0ms).",
+      "detalhes": {
+        "id": "sync-1791247306857",
+        "data_hora": "2026-10-06T00:41:46.857Z",
+        "status": "SUCESSO",
+        "produtos_analisados": 0,
+        "produtos_atualizados": 0,
+        "produtos_novos": 0,
+        "tempo_ms": 0,
+        "erros": "",
+        "id_loja": 1
+      }
+    },
+    {
+      "id": "log-pnf-1791247306521",
+      "data_hora": "2026-10-06T00:41:46.521Z",
+      "tipo": "PRODUTO_NAO_ENCONTRADO",
+      "mensagem": "Produto não localizado para código: \"7891000100103\" na Loja 2."
+    },
+    {
+      "id": "log-pnf-1791247306354",
+      "data_hora": "2026-10-06T00:41:46.354Z",
+      "tipo": "PRODUTO_NAO_ENCONTRADO",
+      "mensagem": "Produto não localizado para código: \"7891000100103\" na Loja 1."
+    },
+    {
+      "id": "log-pnf-1791247306187",
+      "data_hora": "2026-10-06T00:41:46.187Z",
+      "tipo": "PRODUTO_NAO_ENCONTRADO",
+      "mensagem": "Produto não localizado para código: \"0078910007001\" na Loja 1."
+    },
+    {
+      "id": "log-pnf-1791247306009",
+      "data_hora": "2026-10-06T00:41:46.009Z",
+      "tipo": "PRODUTO_NAO_ENCONTRADO",
+      "mensagem": "Produto não localizado para código: \"9999999999999\" na Loja 1."
+    },
+    {
+      "id": "log-pnf-1791247305842",
+      "data_hora": "2026-10-06T00:41:45.842Z",
+      "tipo": "PRODUTO_NAO_ENCONTRADO",
+      "mensagem": "Produto não localizado para código: \"1548\" na Loja 1."
+    },
+    {
+      "id": "log-pnf-1791247305676",
+      "data_hora": "2026-10-06T00:41:45.676Z",
+      "tipo": "PRODUTO_NAO_ENCONTRADO",
+      "mensagem": "Produto não localizado para código: \"7891000100103\" na Loja 1."
+    },
+    {
+      "id": "log-1791247057512",
+      "data_hora": "2026-10-06T00:37:37.511Z",
+      "tipo": "SINCRONIZACAO",
+      "mensagem": "Sincronização Loja 1: 0 analisados, 0 atualizados, 0 novos (0ms).",
+      "detalhes": {
+        "id": "sync-1791247057511",
+        "data_hora": "2026-10-06T00:37:37.511Z",
+        "status": "SUCESSO",
+        "produtos_analisados": 0,
+        "produtos_atualizados": 0,
+        "produtos_novos": 0,
+        "tempo_ms": 0,
+        "erros": "",
+        "id_loja": 1
+      }
+    },
+    {
+      "id": "log-1791246634575",
+      "data_hora": "2026-10-06T00:30:34.575Z",
+      "tipo": "SINCRONIZACAO",
+      "mensagem": "Sincronização Loja 1: 0 analisados, 0 atualizados, 0 novos (0ms).",
+      "detalhes": {
+        "id": "sync-1791246634575",
+        "data_hora": "2026-10-06T00:30:34.575Z",
+        "status": "SUCESSO",
+        "produtos_analisados": 0,
+        "produtos_atualizados": 0,
+        "produtos_novos": 0,
+        "tempo_ms": 0,
+        "erros": "",
+        "id_loja": 1
+      }
+    },
+    {
+      "id": "log-cfg-1791245096159",
+      "data_hora": "2026-10-06T00:04:56.159Z",
+      "tipo": "CONFIGURACAO",
+      "mensagem": "Configurações do ERP salvas (Host: localhost:8745, Banco: vr, Loja: 1)."
+    },
+    {
+      "id": "log-1791245092569",
+      "data_hora": "2026-10-06T00:04:52.569Z",
+      "tipo": "SINCRONIZACAO",
+      "mensagem": "Sincronização Loja 1: 0 analisados, 0 atualizados, 0 novos (0ms).",
+      "detalhes": {
+        "id": "sync-1791245092569",
+        "data_hora": "2026-10-06T00:04:52.569Z",
+        "status": "SUCESSO",
+        "produtos_analisados": 0,
+        "produtos_atualizados": 0,
+        "produtos_novos": 0,
+        "tempo_ms": 0,
+        "erros": "",
+        "id_loja": 1
+      }
+    },
+    {
+      "id": "log-cfg-1791245079524",
+      "data_hora": "2026-10-06T00:04:39.524Z",
+      "tipo": "CONFIGURACAO",
+      "mensagem": "Configurações do ERP salvas (Host: localhost:8745, Banco: vr, Loja: 1)."
+    },
+    {
+      "id": "log-cfg-1791244931770",
+      "data_hora": "2026-10-06T00:02:11.770Z",
+      "tipo": "CONFIGURACAO",
+      "mensagem": "Configurações do ERP salvas (Host: localhost:8745, Banco: VR, Loja: 1)."
+    },
+    {
+      "id": "log-cfg-1791244890783",
+      "data_hora": "2026-10-06T00:01:30.783Z",
+      "tipo": "CONFIGURACAO",
+      "mensagem": "Configurações do ERP salvas (Host: localhost:8745, Banco: VR, Loja: 1)."
+    },
+    {
+      "id": "log-sync-1791244722240",
+      "data_hora": "2026-10-05T23:58:42.240Z",
+      "tipo": "SINCRONIZACAO_NUVEM",
+      "mensagem": "Sincronização PostgreSQL -> Nuvem (Loja 1): 2 novos, 0 atualizados, 0 inativados. Total ativo no Busca Preço: 2.",
+      "detalhes": {
+        "id": "sync-1791244722240",
+        "data_hora": "2026-10-05T23:58:42.240Z",
+        "status": "SUCESSO",
+        "produtos_analisados": 2,
+        "produtos_atualizados": 0,
+        "produtos_novos": 2,
+        "produtos_desativados": 0,
+        "tempo_ms": 0,
+        "erros": "",
+        "id_loja": 1
+      }
+    },
+    {
+      "id": "log-cfg-1791244352572",
+      "data_hora": "2026-10-05T23:52:32.572Z",
+      "tipo": "CONFIGURACAO",
+      "mensagem": "Configurações do ERP salvas (Host: localhost:8745, Banco: vr, Loja: 1)."
+    },
+    {
+      "id": "log-cfg-1791244352570",
+      "data_hora": "2026-10-05T23:52:32.570Z",
+      "tipo": "CONFIGURACAO",
+      "mensagem": "Configurações do ERP salvas (Host: localhost:8745, Banco: vr, Loja: 1)."
+    },
+    {
+      "id": "log-1791243199850",
+      "data_hora": "2026-10-05T23:33:19.850Z",
+      "tipo": "SINCRONIZACAO",
+      "mensagem": "Sincronização Loja 1: 0 analisados, 0 atualizados, 0 novos (0ms).",
+      "detalhes": {
+        "id": "sync-1791243199850",
+        "data_hora": "2026-10-05T23:33:19.850Z",
+        "status": "SUCESSO",
+        "produtos_analisados": 0,
+        "produtos_atualizados": 0,
+        "produtos_novos": 0,
+        "tempo_ms": 0,
+        "erros": "",
+        "id_loja": 1
+      }
+    },
+    {
+      "id": "log-1791241259232",
+      "data_hora": "2026-10-05T23:00:59.231Z",
+      "tipo": "SINCRONIZACAO",
+      "mensagem": "Sincronização Loja 1: 0 analisados, 0 atualizados, 0 novos (0ms).",
+      "detalhes": {
+        "id": "sync-1791241259231",
+        "data_hora": "2026-10-05T23:00:59.231Z",
+        "status": "SUCESSO",
+        "produtos_analisados": 0,
+        "produtos_atualizados": 0,
+        "produtos_novos": 0,
+        "tempo_ms": 0,
+        "erros": "",
+        "id_loja": 1
+      }
+    },
+    {
+      "id": "agent-log-1791233257552",
+      "data_hora": "2026-10-05T20:47:37.552Z",
+      "tipo": "TESTE",
+      "mensagem": "[Agente Local] Agente teste respondeu com sucesso"
+    },
+    {
+      "id": "log-1",
+      "data_hora": "2026-10-05T20:47:13.845Z",
+      "tipo": "SISTEMA",
+      "mensagem": "Sistema Consulta Preço iniciado com base limpa."
+    }
+  ],
+  "lastSyncTimestamp": "2026-10-06T00:52:35.020Z",
+  "erpConfig": {
+    "nome_loja": "Smart O Varejao · Loja 01 (Matriz)",
+    "host": "localhost",
+    "port": 8745,
+    "database": "vr",
+    "user": "postgres",
+    "password": "VrPost@Server",
+    "ssl": true,
+    "id_loja": 1,
+    "id_situacaocadastro": 3,
+    "intervalo_minutos": 10,
+    "sincronizacao_automatica": true,
+    "custom_query": ""
+  }
+}

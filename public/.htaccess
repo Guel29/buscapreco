@@ -1,0 +1,52 @@
+# ==============================================================================
+# CONFIGURAÇÃO APACHE / HOSTINGER - SISTEMA CENTRAL DE CONSULTA DE PREÇOS
+# Subdomínio: buscapreco.instara.com.br
+# ==============================================================================
+
+# Prioriza o carregamento do aplicativo SPA React (index.html)
+DirectoryIndex index.html index.php
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Headers CORS para integração de terminais, leitores de código de barras e agentes
+    Header always set Access-Control-Allow-Origin "*"
+    Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+    Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With, Accept"
+
+    # Pre-flight OPTIONS CORS
+    RewriteCond %{REQUEST_METHOD} OPTIONS
+    RewriteRule ^(.*)$ $1 [R=200,L]
+
+    # 1. Roteamento de API REST
+    RewriteRule ^api/products/search$ api.php?action=search [QSA,L]
+    RewriteRule ^api/products/sync-batch$ api.php?action=sync-batch [QSA,L]
+    RewriteRule ^api/products$ api.php?action=products [QSA,L]
+    RewriteRule ^api/status$ api.php?action=status [QSA,L]
+    RewriteRule ^api/sync/instant-load$ api.php?action=instant-load [QSA,L]
+    RewriteRule ^api/sync/verify$ api.php?action=status [QSA,L]
+    RewriteRule ^api/sync/test-product$ api.php?action=search [QSA,L]
+    RewriteRule ^api/(.*)$ api.php?action=$1 [QSA,L]
+    RewriteRule ^api$ api.php [QSA,L]
+
+    # 2. Permite acesso direto aos scripts de suporte
+    RewriteRule ^(api\.php|config\.php|install\.php|atualizar_app\.php|atualizar_produtos\.php) - [L]
+
+    # 3. Se o arquivo ou pasta física existir (assets/, js, css, imagens), entrega diretamente
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # 4. Todas as outras rotas do SPA caem no index.html
+    RewriteRule ^ index.html [L]
+</IfModule>
+
+# Charset padrão UTF-8
+AddDefaultCharset UTF-8
+
+# Protege arquivos confidenciais contra leitura pública
+<FilesMatch "\.(sql|log|env|json)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>

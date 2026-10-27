@@ -1,0 +1,6 @@
+{
+  "name": "Consulta Preço + Etiquetas de Gôndola - Supermercado",
+  "description": "Sistema completo de consulta rápida de preços em tela cheia com leitor USB, sincronização segura somente-leitura com PostgreSQL local do ERP, funcionamento offline e impressão automática de etiquetas Argox OS-214.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
