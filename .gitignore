@@ -10,3 +10,7 @@ coverage/
 public/config_db.json
 public/.auth-rate-*.json
 public/erp-agent/config.json
+public/erp-agent/config.backup.json
+public/erp-agent/config.new.json
+public/erp-agent/.agent-control.json
+public/erp-agent/logs/

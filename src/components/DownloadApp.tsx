@@ -71,7 +71,7 @@ export function DownloadApp() {
     setDownloadSuccess(null);
     try {
       const zip = new JSZip();
-      for (const file of ['integrador.mjs', 'config.example.json', 'LEIA-ME.txt']) {
+      for (const file of ['integrador.mjs', 'runtime.mjs', 'configure-windows.mjs', 'config.example.json', 'LEIA-ME.txt']) {
         const response = await fetch(`/erp-agent/${file}`);
         if (!response.ok) throw new Error('Kit indisponível. Atualize os arquivos da hospedagem.');
         const text = await response.text();

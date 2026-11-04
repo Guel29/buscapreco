@@ -42,8 +42,10 @@ try {
   const webPort = await port(), pgPort = await port();
   docker(['run', '-d', '--name', db, '--network', network, '-e', 'MARIADB_ALLOW_EMPTY_ROOT_PASSWORD=1', '-e', 'MARIADB_DATABASE=buscapreco', 'mariadb:11.4']);
   docker(['run', '-d', '--name', pg, '--network', network, '-p', `127.0.0.1:${pgPort}:5432`, '-e', 'POSTGRES_HOST_AUTH_METHOD=trust', '-e', 'POSTGRES_DB=vr', 'postgres:16-alpine']);
-  await ready(['exec', db, 'mariadb', '-uroot', '-e', 'SELECT 1']);
-  await ready(['exec', pg, 'pg_isready', '-U', 'postgres', '-d', 'vr']);
+  // Image entrypoints briefly start socket-only temporary servers before creating
+  // the application database. Require the final TCP server and the actual DB.
+  await ready(['exec', db, 'mariadb', '-h127.0.0.1', '-uroot', 'buscapreco', '-e', 'SELECT 1']);
+  await ready(['exec', pg, 'psql', '-h', '127.0.0.1', '-U', 'postgres', '-d', 'vr', '-c', 'SELECT 1']);
   docker(['exec', '-i', pg, 'psql', '-U', 'postgres', '-d', 'vr', '-v', 'ON_ERROR_STOP=1'], await fs.readFile(path.join(root, 'tests/fixtures/vr.sql')));
   docker(['run', '-d', '--name', web, '--network', network, '-p', `127.0.0.1:${webPort}:80`, 'buscapreco-php-test']);
   const site = path.join(temporary, 'site');

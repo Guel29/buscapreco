@@ -2,6 +2,10 @@
 
 Aplicativo de consulta de preços por código de barras e código interno, com painel administrativo e integração VR/PostgreSQL → Hostinger/PHP/MySQL. Consulte o [guia de instalação e validação](docs/ENTREGA_HOSTINGER_VR.md) antes de publicar.
 
+Para o servidor Windows da loja, use o [instalador completo como serviço](docs/INSTALADOR_WINDOWS.md).
+Ele inicia ao ligar o computador, sem login, e inclui runtime e dependências.
+Gere-o com `npm run build:windows`; o instalador requer administrador uma vez.
+
 ---
 
 ## 🚀 Como Executar

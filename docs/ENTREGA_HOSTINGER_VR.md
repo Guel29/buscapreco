@@ -41,6 +41,10 @@ se o token/senha ainda não foram configurados; isso não impede consultas públ
 
 ## Instalar o integrador no Windows da loja
 
+O caminho recomendado é o [instalador completo como serviço](INSTALADOR_WINDOWS.md),
+que inclui o runtime e inicia ao ligar o Windows, antes do login. O roteiro abaixo
+é a alternativa manual/portátil para testes, não uma exigência de login do serviço.
+
 1. No painel, use **Instalação e integração VR → Baixar kit do integrador VR**.
    Instale Node.js 22 LTS ou posterior a partir do site oficial.
 2. Extraia em uma pasta restrita e execute `npm install pg@8.23.1 --save-exact`.

@@ -16,7 +16,7 @@ test('packages only the Hostinger app, excluding old ZIPs, Windows tools and loc
     const php = ['api.php', 'config.php', 'config_db.example.txt', 'index.php', 'install.php', 'auth.php', 'auth-session.php', 'atualizar_app.php', 'atualizar_produtos.php', 'erp-sync.php', '.htaccess', 'schema_buscapreco.sql'];
     for (const name of php) await writeFile(path.join(root, 'public', name), 'fixture');
     await mkdir(path.join(root, 'public/erp-agent'));
-    for (const name of ['integrador.mjs', 'config.example.json', 'LEIA-ME.txt']) {
+    for (const name of ['integrador.mjs', 'runtime.mjs', 'configure-windows.mjs', 'config.example.json', 'LEIA-ME.txt']) {
       await writeFile(path.join(root, 'public/erp-agent', name), 'fixture');
     }
     for (const dir of ['dist', 'public']) {

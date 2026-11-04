@@ -1,6 +1,8 @@
 import fs from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
+import path from 'node:path';
+import { startControl, stopAgent, createLogger, dataDirectory } from './runtime.mjs';
 
 export const VR_QUERY = `SELECT pr.id_produto::text AS codigo_interno,
   pr.codigobarras::text AS codigo_barras, p.descricaocompleta AS descricao,
@@ -88,23 +90,42 @@ export async function sendSnapshot(config, products, request = fetch) {
 }
 
 async function main() {
-  const filename = new URL('./config.json', import.meta.url);
-  const config = JSON.parse(await fs.readFile(filename, 'utf8'));
-  validateConfig(config);
-  const { default: pg } = await import('pg');
-  do {
-    try {
-      const products = await readProducts(config, pg.Client);
-      const result = await sendSnapshot(config, products);
-      console.log(`${new Date().toISOString()} — ${result.total_processados} produtos confirmados na nuvem.`);
-    } catch (error) {
-      // Do not print database errors/URLs: they can expose local credentials.
-      console.error(`${new Date().toISOString()} — Sincronização não concluída (${error.code || 'verifique configuração e conexão'}).`);
-      if (process.argv.includes('--once')) process.exitCode = 1;
-    }
-    if (process.argv.includes('--once')) break;
-    await new Promise((resolve) => setTimeout(resolve, config.intervalo_minutos * 60000));
-  } while (true);
+  const directory = dataDirectory(import.meta.url);
+  if (process.argv.includes('--stop')) { await stopAgent(directory); return; }
+  const log = await createLogger(directory, process.argv.includes('--background'));
+  const close = await startControl(directory, async () => {
+    await log('Integrador encerrado a pedido do usuário.', { state: 'stopped' });
+    setTimeout(() => process.exit(0), 100);
+  });
+  if (!close) return; // Another instance of this installation is already running.
+  try {
+    const config = JSON.parse(await fs.readFile(path.join(directory, 'config.json'), 'utf8'));
+    validateConfig(config);
+    const { default: pg } = await import('pg');
+    await log('Integrador iniciado; aguardando confirmação da primeira carga.', { state: 'starting' });
+    do {
+      let success = false;
+      try {
+        const products = await readProducts(config, pg.Client);
+        const result = await sendSnapshot(config, products);
+        success = true;
+        await log(`${result.total_processados} produtos confirmados na nuvem.`, { state: 'success', total: result.total_processados });
+      } catch (error) {
+        const code = /^[A-Z0-9_]{1,32}$/.test(error.code || '') ? error.code : 'CONFIGURACAO_OU_CONEXAO';
+        await log(`Sincronização não concluída (${code}).`, { state: 'error', code });
+        if (process.argv.includes('--once')) process.exitCode = 1;
+      }
+      if (process.argv.includes('--once')) break;
+      // Windows may log in before the network is ready. Retry failures after a
+      // minute, without overlapping queries or multiple instances.
+      await new Promise((resolve) => setTimeout(resolve, (success ? config.intervalo_minutos : 1) * 60000));
+    } while (true);
+  } catch {
+    await log('Configuração inválida ou dependência ausente. Confira o config.json.', { state: 'configuration-error' });
+    process.exitCode = 1;
+  } finally {
+    await close();
+  }
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

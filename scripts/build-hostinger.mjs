@@ -12,7 +12,7 @@ for (const name of ['buscapreco_instalacao_completa.zip', 'buscapreco_pacote_atu
   console.log(`${name}: ${buffer.length} bytes`);
 }
 const agent = new JSZip();
-for (const name of ['integrador.mjs', 'config.example.json', 'LEIA-ME.txt']) {
+for (const name of ['integrador.mjs', 'runtime.mjs', 'configure-windows.mjs', 'config.example.json', 'LEIA-ME.txt']) {
   agent.file(name, await fs.readFile(new URL(`../public/erp-agent/${name}`, import.meta.url)));
 }
 const kit = await agent.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });

@@ -4,24 +4,36 @@ Este agente roda no servidor Windows da loja; a Hostinger recebe os produtos por
 Não abra a porta do PostgreSQL na Internet. Use um usuário limitado a SELECT nas tabelas produto,
 produtoautomacao, produtocomplemento e tipoembalagem do banco VR.
 
+INSTALADOR COMPLETO (RECOMENDADO)
+Use BuscaPrecoIntegrador-Setup.exe, publicado separadamente. Ele já inclui Node.js e o driver pg.
+Execute como administrador uma vez e informe os dados de leitura do VR e o token da Hostinger.
+Marque a inicialização como serviço: ele iniciará ao ligar o computador, antes do login do Windows,
+sem precisar abrir o painel, navegador ou terminal. O instalador não faz uma carga imediatamente.
+O serviço se chama Busca Preço - Integrador VR e usa a conta restrita LocalService.
+Para um teste opcional antes de reiniciar, inicie-o pelo gerenciador de Serviços do Windows.
+
+Programas: %ProgramFiles%\BuscaPrecoIntegrador
+Configuração e logs: %ProgramData%\BuscaPrecoIntegrador
+O menu Iniciar contém atalhos para os serviços, logs e desinstalação. Não compartilhe config.json,
+config.backup.json ou .agent-control.json. O desinstalador remove o serviço e a inicialização;
+a configuração e os logs são preservados por padrão, com opção de apagar.
+
+ALTERNATIVA MANUAL / PORTÁTIL (ESTE KIT)
 1. Instale o Node.js 22 LTS ou posterior pelo site oficial nodejs.org.
 2. Extraia o kit em uma pasta restrita ao responsável pela integração.
 3. No terminal dessa pasta: npm install pg@8.23.1 --save-exact
 4. Copie config.example.json para config.json e preencha o banco, loja e URL HTTPS da Hostinger.
    Confirme com o responsável pelo VR o código da situação ATIVA (o exemplo usa 3).
-5. Gere localmente um token aleatório: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-   Guarde o mesmo token em config.json (campo token) e no config_db.json da Hostinger
-   (campo erp_sync_token). Não envie o token nem as credenciais por chat.
+5. Gere um token aleatório de 32 bytes e guarde o mesmo valor em config.json (campo token)
+   e no config_db.json da Hostinger (campo erp_sync_token). Não envie credenciais por chat.
 6. Revise o código e execute uma carga: node integrador.mjs --once
-7. Confira o total confirmado e consulte um código na nuvem. Para continuar a cada 10 minutos:
-   node integrador.mjs
-
-Se precisar iniciar com o Windows, configure explicitamente uma tarefa no Agendador apontando
-para node.exe e integrador.mjs, com a pasta do kit como diretório inicial. Não são criadas tarefas,
-serviços ou exclusões do antivírus automaticamente. Não há execução remota de código ou tentativa
-de senhas padrão. A transação PostgreSQL é somente leitura; o agente não altera o VR.
+7. Confira o total confirmado. Para continuar: node integrador.mjs
+   Para parar esta instância: node integrador.mjs --stop
 
 A carga é enviada em lotes. O catálogo só muda após a confirmação de TODOS os lotes; um lote
-interrompido não desativa produtos. Uma extração vazia exige revisão humana e preserva o catálogo.
-config.json contém segredos: nunca publique, compartilhe ou envie esse arquivo para a hospedagem.
-Uma verificação local não comprova ausência de malware nem compatibilidade com toda versão do VR.
+interrompido não desativa produtos. Uma extração vazia preserva o catálogo e exige revisão.
+Apenas uma instância pode executar por pasta de configuração. Logs têm rotação e não incluem
+credenciais. Não há execução remota de código, tentativa de senhas conhecidas ou alteração do VR.
+
+Uma compilação ou hash correto não comprova ausência de malware. O instalador não é assinado
+digitalmente; verifique-o no Defender e valide no Windows real da loja. Não desative a proteção.

@@ -26,7 +26,7 @@ export async function createHostingerPackage(root) {
   for (const file of backendFiles) {
     zip.file(file, await fs.readFile(path.join(root, 'public', file)));
   }
-  for (const file of ['integrador.mjs', 'config.example.json', 'LEIA-ME.txt']) {
+  for (const file of ['integrador.mjs', 'runtime.mjs', 'configure-windows.mjs', 'config.example.json', 'LEIA-ME.txt']) {
     zip.file(`erp-agent/${file}`, await fs.readFile(path.join(root, 'public/erp-agent', file)));
   }
   zip.file('LEIA-ME.txt', `INSTALAÇÃO NA HOSTINGER
