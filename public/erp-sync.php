@@ -3,7 +3,7 @@
 require_once __DIR__ . '/config.php';
 header('Cache-Control: no-store');
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') sendJson(['success' => false, 'error' => 'Use POST.'], 405);
-$token = erpSyncToken();
+$token = function_exists('erpSyncToken') ? erpSyncToken() : (getenv('ERP_SYNC_TOKEN') ?: ($activeConfig['erp_sync_token'] ?? ''));
 if (strlen($token) < 32) sendJson(['success' => false, 'error' => 'Integração não configurada.'], 503);
 if (!hash_equals($token, $_SERVER['HTTP_X_ERP_TOKEN'] ?? '')) sendJson(['success' => false, 'error' => 'Não autorizado.'], 401);
 $input = json_decode(file_get_contents('php://input'), true);
@@ -43,14 +43,14 @@ try {
         sync_id CHAR(36) PRIMARY KEY, id_loja INT NOT NULL, total INT NOT NULL,
         concluida TINYINT NOT NULL DEFAULT 0, criada_em DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
         INDEX por_loja(id_loja,concluida,criada_em)
-    ) ENGINE=InnoDB");
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
     $pdo->exec("CREATE TABLE IF NOT EXISTS erp_carga_itens (
         sync_id CHAR(36) NOT NULL, id CHAR(64) NOT NULL, codigo_interno VARCHAR(50) NOT NULL,
         codigo_barras VARCHAR(50) NOT NULL, descricao VARCHAR(255) NOT NULL,
         preco DECIMAL(12,2) NOT NULL, embalagem VARCHAR(20) NOT NULL,
         PRIMARY KEY(sync_id, id), UNIQUE KEY ean_por_carga(sync_id,codigo_barras)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-    $pdo->exec('DELETE i FROM erp_carga_itens i JOIN erp_cargas c ON c.sync_id=i.sync_id WHERE c.criada_em < NOW() - INTERVAL 1 HOUR');
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    $pdo->exec('DELETE i FROM erp_carga_itens i JOIN erp_cargas c ON BINARY c.sync_id=BINARY i.sync_id WHERE c.criada_em < NOW() - INTERVAL 1 HOUR');
     $pdo->exec('DELETE FROM erp_cargas WHERE criada_em < NOW() - INTERVAL 1 DAY');
     $pdo->beginTransaction();
     if ($operation === 'batch') {

@@ -77,6 +77,17 @@ try {
   await ready(['exec', db, 'mariadb', '-h127.0.0.1', '-uroot', 'buscapreco', '-e', 'SELECT 1']);
   await ready(['exec', pg, 'psql', '-h', '127.0.0.1', '-U', 'postgres', '-d', 'vr', '-c', 'SELECT 1']);
   docker(['exec', '-i', pg, 'psql', '-U', 'postgres', '-d', 'vr', '-v', 'ON_ERROR_STOP=1'], await fs.readFile(path.join(root, 'tests/fixtures/vr.sql')));
+  // Reproduce existing Hostinger staging tables with different collations.
+  const receiver = await fs.readFile(path.join(root, 'public/erp-sync.php'), 'utf8');
+  const staging = [...receiver.matchAll(/\$pdo->exec\("(CREATE TABLE IF NOT EXISTS erp_[\s\S]*?)"\);/g)].map((match) => match[1]);
+  assert.equal(staging.length, 2);
+  staging[1] = staging[1].replace(/COLLATE=utf8mb4_unicode_ci/g, 'COLLATE=utf8mb4_uca1400_ai_ci');
+  docker(['exec', '-i', db, 'mariadb', '-uroot', 'buscapreco'], staging.join(';') + ';');
+  let mismatchReproduced = false;
+  try { docker(['exec', db, 'mariadb', '-uroot', 'buscapreco', '-e', 'SELECT c.sync_id FROM erp_cargas c JOIN erp_carga_itens i ON c.sync_id=i.sync_id']); }
+  catch (error) { mismatchReproduced = /1267|Illegal mix of collations/.test(error.message); }
+  assert.equal(mismatchReproduced, true, 'Fixture must reproduce the Hostinger collation error.');
+  console.log('Reproduced mixed-collation error; checking receiver compatibility without schema migration.');
   docker(['run', '-d', '--name', web, '--network', network, '-p', `127.0.0.1:${webPort}:80`, 'buscapreco-php-test']);
   const site = path.join(temporary, 'site');
   await fs.mkdir(site);
