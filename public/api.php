@@ -404,7 +404,7 @@ switch ($action) {
             'total_produtos' => (int)($counts['total'] ?? 0),
             'total_produtos_ativos' => (int)($counts['ativos'] ?? 0),
             'total_produtos_inativos' => (int)($counts['inativos'] ?? 0),
-            'ultima_sincronizacao' => $counts['ultima_atualizacao'] ?? date('Y-m-d H:i:s'),
+            'ultima_sincronizacao' => $counts['ultima_atualizacao'] ?? null,
             'hora_servidor' => date('d/m/Y H:i:s')
         ], 200);
         break;

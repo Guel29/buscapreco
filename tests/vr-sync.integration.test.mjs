@@ -50,7 +50,9 @@ test('VR PostgreSQL → staged PHP/MySQL sync → price lookup', { skip: !base }
   assert.equal((await fetch(base + '/api.php?action=mysql/config', { headers: { Cookie: cookie } })).status, 200);
   assert.equal((await fetch(base + '/api.php?action=products/import', { method: 'POST',
     headers: { Cookie: cookie, Origin: 'https://foreign.example', 'Content-Type': 'application/json' }, body: '{}' })).status, 403);
-  await api('/api.php?action=status');
+  const initialStatus = await api('/api.php?action=status');
+  assert.equal(initialStatus.total_produtos, 0);
+  assert.equal(initialStatus.ultima_sincronizacao, null, 'An empty catalog must not report the current time as a confirmed sync.');
   const unauthorized = await fetch(base + '/erp-sync.php', { method: 'POST', body: '{}' });
   assert.equal(unauthorized.status, 401);
   assert.equal((await fetch(base + '/config_db.json')).status, 403);
