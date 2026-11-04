@@ -56,14 +56,14 @@ export function App() {
 
   // System Status
   const [systemStatus, setSystemStatus] = useState<SystemStatus>({
-    erp_conectado: true,
+    erp_conectado: false,
     internet_online: true,
-    banco_online: true,
-    cache_local_atualizado: true,
-    impressora_online: true,
+    banco_online: false,
+    cache_local_atualizado: false,
+    impressora_online: false,
     ultima_sincronizacao: new Date().toISOString(),
     proxima_sincronizacao: new Date(Date.now() + 600000).toISOString(),
-    total_produtos: 10,
+    total_produtos: 0,
     loja_atual: 1,
     tempo_retorno_segundos: 5,
   });
@@ -139,13 +139,10 @@ export function App() {
 
   const loadStatus = async () => {
     try {
-      const status = await fetchSystemStatus();
+      const status = await fetchSystemStatus(currentStoreId);
       setSystemStatus(status);
       if (status.nome_loja) {
         setCurrentStoreName(status.nome_loja);
-      }
-      if (status.loja_atual) {
-        setCurrentStoreId(status.loja_atual);
       }
     } catch (e) {
       console.error(e);

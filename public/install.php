@@ -9,6 +9,8 @@
  */
 
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/auth-session.php';
+requireAdminSession();
 
 $isAjax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') || 
           (isset($_GET['format']) && $_GET['format'] === 'json');
@@ -86,10 +88,11 @@ try {
       `tipo_banco` VARCHAR(20) DEFAULT 'mysql',
       `host` VARCHAR(255) DEFAULT NULL,
       `port` INT DEFAULT 3306,
-      `database_name` VARCHAR(100) DEFAULT NULL,
-      `user_name` VARCHAR(100) DEFAULT NULL,
+      `database` VARCHAR(100) DEFAULT NULL,
+      `user` VARCHAR(100) DEFAULT NULL,
       `password` VARCHAR(255) DEFAULT NULL,
       `ssl` TINYINT(1) DEFAULT 0,
+      `id_situacaocadastro` INT DEFAULT 3,
       `intervalo_minutos` INT DEFAULT 10,
       `sincronizacao_automatica` TINYINT(1) DEFAULT 1,
       `custom_query` TEXT,
@@ -107,9 +110,8 @@ try {
 
     SET FOREIGN_KEY_CHECKS = 1;
 
-    INSERT INTO `lojas` (`id`, `nome`, `cnpj`, `endereco`, `ativa`) VALUES
-    (1, 'Instara Supermercados - Matriz', '00.000.000/0001-00', 'Av. Principal, 1000', 1)
-    ON DUPLICATE KEY UPDATE `nome` = VALUES(`nome`);
+    INSERT IGNORE INTO `lojas` (`id`, `nome`, `cnpj`, `endereco`, `ativa`) VALUES
+    (1, 'Instara Supermercados - Matriz', '00.000.000/0001-00', 'Av. Principal, 1000', 1);
     ";
 
     $pdo->exec($sql);

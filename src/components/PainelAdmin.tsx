@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { adminAuth } from '../services/adminAuth';
 import { LabelModel, PrinterConfig, SystemStatus } from '../types';
 import { EditorEtiquetas } from './EditorEtiquetas';
 import { GerenciadorImpressoras } from './GerenciadorImpressoras';
@@ -66,7 +67,17 @@ export const PainelAdmin: React.FC<PainelAdminProps> = ({
   // Authentication with PIN (stored in localStorage or default 1234)
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [pinInput, setPinInput] = useState<string>('');
-  const [pinError, setPinError] = useState<boolean>(false);
+  const [pinError, setPinError] = useState<string>('');
+  const [needsSetup, setNeedsSetup] = useState(false);
+  const [setupToken, setSetupToken] = useState('');
+  const [authBusy, setAuthBusy] = useState(false);
+
+  useEffect(() => {
+    adminAuth('status').then((state) => {
+      setNeedsSetup(!state.configured);
+      setIsAuthenticated(Boolean(state.authenticated));
+    }).catch((error) => setPinError(error.message));
+  }, []);
 
   // Active navigation tab (Clean & Consolidated)
   const [activeTab, setActiveTab] = useState<
@@ -78,23 +89,20 @@ export const PainelAdmin: React.FC<PainelAdminProps> = ({
   const [pinChangeSuccess, setPinChangeSuccess] = useState<boolean>(false);
   const [newPinValue, setNewPinValue] = useState<string>('');
 
-  const getStoredPin = () => {
-    try {
-      return localStorage.getItem('admin_security_pin') || '1234';
-    } catch {
-      return '1234';
-    }
-  };
-
-  const handlePinSubmit = (e: React.FormEvent) => {
+  const handlePinSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const currentPin = getStoredPin();
-    if (pinInput === currentPin || pinInput === '1234' || pinInput === 'admin') {
+    setAuthBusy(true);
+    setPinError('');
+    try {
+      await adminAuth(needsSetup ? 'setup' : 'login', { password: pinInput, setup_token: setupToken });
       setIsAuthenticated(true);
-      setPinError(false);
-    } else {
-      setPinError(true);
+      setNeedsSetup(false);
       setPinInput('');
+      setSetupToken('');
+    } catch (error) {
+      setPinError(error instanceof Error ? error.message : 'Falha ao autenticar.');
+    } finally {
+      setAuthBusy(false);
     }
   };
 
@@ -115,23 +123,26 @@ export const PainelAdmin: React.FC<PainelAdminProps> = ({
               Acesso Administrativo
             </h2>
             <p className="text-xs text-neutral-400">
-              Digite a senha de segurança para acessar o painel.
+              {needsSetup ? 'Primeiro acesso: defina uma senha com pelo menos 10 caracteres e informe o token de configuração salvo na hospedagem.' : 'Digite a senha de segurança para acessar o painel.'}
             </p>
           </div>
 
           <div>
             <input
               type="password"
-              maxLength={12}
+              maxLength={128}
               autoFocus
               value={pinInput}
               onChange={(e) => setPinInput(e.target.value)}
               placeholder="Digite a senha..."
               className="w-full text-center tracking-widest text-2xl font-mono py-3 bg-neutral-950 border border-neutral-700 rounded-xl text-white focus:outline-none focus:border-emerald-500"
             />
+            {needsSetup && <input type="password" value={setupToken} onChange={(e) => setSetupToken(e.target.value)}
+              placeholder="Token de configuração da hospedagem" autoComplete="off"
+              className="w-full mt-3 p-3 bg-neutral-950 border border-neutral-700 rounded-xl text-sm" />}
             {pinError && (
               <p className="text-xs text-red-400 mt-2 font-semibold">
-                Senha incorreta. Tente novamente.
+                {pinError}
               </p>
             )}
           </div>
@@ -146,9 +157,10 @@ export const PainelAdmin: React.FC<PainelAdminProps> = ({
             </button>
             <button
               type="submit"
+              disabled={authBusy}
               className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition cursor-pointer shadow"
             >
-              Entrar
+              {authBusy ? 'Verificando...' : needsSetup ? 'Configurar administrador' : 'Entrar'}
             </button>
           </div>
         </form>
@@ -190,7 +202,7 @@ export const PainelAdmin: React.FC<PainelAdminProps> = ({
           </button>
 
           <button
-            onClick={() => setIsAuthenticated(false)}
+            onClick={async () => { await adminAuth('logout'); setIsAuthenticated(false); }}
             title="Bloquear Painel"
             className="p-2 text-neutral-400 hover:text-white rounded-xl hover:bg-neutral-800 cursor-pointer"
           >
@@ -212,7 +224,7 @@ export const PainelAdmin: React.FC<PainelAdminProps> = ({
             }`}
           >
             <Download className="w-4 h-4 text-emerald-400" />
-            <span>Download do App & BAT</span>
+            <span>Instalação e integração VR</span>
           </button>
 
           <button
@@ -506,7 +518,7 @@ export const PainelAdmin: React.FC<PainelAdminProps> = ({
                 <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
                   <input
                     type="password"
-                    maxLength={16}
+                    maxLength={128}
                     value={newPinValue}
                     onChange={(e) => setNewPinValue(e.target.value)}
                     placeholder="Digite a nova senha de acesso..."
@@ -514,12 +526,14 @@ export const PainelAdmin: React.FC<PainelAdminProps> = ({
                   />
                   <button
                     type="button"
-                    onClick={() => {
-                      if (newPinValue.trim()) {
-                        localStorage.setItem('admin_security_pin', newPinValue.trim());
+                    onClick={async () => {
+                      try {
+                        await adminAuth('change-password', { password: newPinValue });
                         setPinChangeSuccess(true);
                         setNewPinValue('');
                         setTimeout(() => setPinChangeSuccess(false), 5000);
+                      } catch (error) {
+                        window.alert(error instanceof Error ? error.message : 'Falha ao salvar a senha.');
                       }
                     }}
                     className="w-full sm:w-auto px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition cursor-pointer shadow"

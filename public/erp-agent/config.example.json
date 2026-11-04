@@ -1,0 +1,15 @@
+{
+  "url": "https://seu-dominio.example/",
+  "token": "",
+  "id_loja": 1,
+  "situacao_ativa": 3,
+  "intervalo_minutos": 10,
+  "postgres": {
+    "host": "127.0.0.1",
+    "port": 5432,
+    "database": "vr",
+    "user": "",
+    "password": "",
+    "ssl": false
+  }
+}

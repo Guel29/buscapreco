@@ -46,7 +46,6 @@ DirectoryIndex index.html index.php
 AddDefaultCharset UTF-8
 
 # Protege arquivos confidenciais contra leitura pública
-<FilesMatch "\.(sql|log|env|json)$">
-    Order allow,deny
-    Deny from all
+<FilesMatch "(^\.|\.(sql|log|env)$|^(?!config\.example\.json$).*\.json$)">
+    Require all denied
 </FilesMatch>

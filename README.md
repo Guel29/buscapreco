@@ -1,13 +1,13 @@
 # Sistema de Consulta de Preços & Gerenciamento de Lojas e Terminais
 
-Sistema completo de consulta de preços para terminais de consulta (busca-preço), PDV e painel administrativo, com suporte a integração remota Hostinger (MySQL / PHP), gerenciamento de impressoras térmicas (Argox, Zebra, Elgin) e múltiplos terminais.
+Aplicativo de consulta de preços por código de barras e código interno, com painel administrativo e integração VR/PostgreSQL → Hostinger/PHP/MySQL. Consulte o [guia de instalação e validação](docs/ENTREGA_HOSTINGER_VR.md) antes de publicar.
 
 ---
 
 ## 🚀 Como Executar
 
 ### Pré-requisitos
-- Node.js 18+ ou 20+
+- Node.js 22.12+ (Node.js 24 usado na validação)
 - npm ou bun
 
 ### Instalação
@@ -20,12 +20,32 @@ npm install
 npm run dev
 ```
 Inicia o servidor Express integrado ao Vite na porta `3000`.
+Para configurar o administrador local, copie `.env.example` para `.env`, preencha
+`ERP_SYNC_TOKEN` com um valor aleatório seguro e use esse token no primeiro acesso
+ao painel. Não há senha padrão ou senha alternativa de acesso. Na Hostinger a
+configuração equivalente fica no `config_db.json`; ela não usa o `.env` local.
 
 ### Compilação de Produção
 ```bash
 npm run build
 ```
 Gera os arquivos otimizados em `dist/`.
+
+Também gera `public/buscapreco_instalacao_completa.zip` e
+`public/buscapreco_pacote_atualizacao.zip` (com cópias em `dist/`). Os pacotes
+incluem apenas a aplicação PHP e a interface compilada para Hostinger, sem ZIPs
+antigos, scripts Windows ou credenciais locais. Faça backup da hospedagem e
+preserve o `config_db.json` existente antes de extrair. Os agentes Windows são
+distribuídos separadamente. Uma compilação bem-sucedida não substitui a
+verificação do pacote com antivírus.
+
+Teste do empacotamento: `node --test tests/hostinger-package.test.mjs`.
+
+`npm test` executa os testes locais. `npm run test:hostinger` usa Docker para testar
+Apache/PHP, MySQL e um PostgreSQL VR de exemplo, sem acessar a loja; compilações
+devem ser geradas antes com `npm run build`. Os contêineres de teste são descartados.
+O banco real do VR, o servidor Windows e o antivírus do usuário ainda precisam de
+validação no local. Não desative as proteções de segurança para instalar o pacote.
 
 ### Verificação de Tipos
 ```bash

@@ -60,6 +60,8 @@ function saveDbCredentials($host, $port, $database, $user, $password = null) {
         'password' => ($password !== null && $password !== '••••••••') ? $password : ($activeConfig['password'] ?? '')
     ];
 
+    // Preserve integration token and store binding when changing MySQL credentials.
+    $newConfig = array_merge($activeConfig, $newConfig);
     @file_put_contents($configFile, json_encode($newConfig, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
     return $newConfig;
 }
@@ -96,6 +98,7 @@ function getDbConnection($customCredentials = null, $suppressExit = false) {
         ];
         try {
             $customPdo = new PDO($dsn, $user, $pass, $options);
+            $customPdo->exec("SET time_zone = '-03:00'");
             return $customPdo;
         } catch (PDOException $e) {
             $GLOBALS['g_lastDbError'] = $e->getMessage();
@@ -116,6 +119,7 @@ function getDbConnection($customCredentials = null, $suppressExit = false) {
         ];
         try {
             $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
+            $pdo->exec("SET time_zone = '-03:00'");
             $GLOBALS['g_lastDbError'] = null;
         } catch (PDOException $e) {
             $GLOBALS['g_lastDbError'] = $e->getMessage();

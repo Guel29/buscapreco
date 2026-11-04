@@ -1,0 +1,27 @@
+INTEGRADOR VR / POSTGRESQL — BUSCA PREÇO
+
+Este agente roda no servidor Windows da loja; a Hostinger recebe os produtos por HTTPS.
+Não abra a porta do PostgreSQL na Internet. Use um usuário limitado a SELECT nas tabelas produto,
+produtoautomacao, produtocomplemento e tipoembalagem do banco VR.
+
+1. Instale o Node.js 22 LTS ou posterior pelo site oficial nodejs.org.
+2. Extraia o kit em uma pasta restrita ao responsável pela integração.
+3. No terminal dessa pasta: npm install pg@8.23.1 --save-exact
+4. Copie config.example.json para config.json e preencha o banco, loja e URL HTTPS da Hostinger.
+   Confirme com o responsável pelo VR o código da situação ATIVA (o exemplo usa 3).
+5. Gere localmente um token aleatório: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+   Guarde o mesmo token em config.json (campo token) e no config_db.json da Hostinger
+   (campo erp_sync_token). Não envie o token nem as credenciais por chat.
+6. Revise o código e execute uma carga: node integrador.mjs --once
+7. Confira o total confirmado e consulte um código na nuvem. Para continuar a cada 10 minutos:
+   node integrador.mjs
+
+Se precisar iniciar com o Windows, configure explicitamente uma tarefa no Agendador apontando
+para node.exe e integrador.mjs, com a pasta do kit como diretório inicial. Não são criadas tarefas,
+serviços ou exclusões do antivírus automaticamente. Não há execução remota de código ou tentativa
+de senhas padrão. A transação PostgreSQL é somente leitura; o agente não altera o VR.
+
+A carga é enviada em lotes. O catálogo só muda após a confirmação de TODOS os lotes; um lote
+interrompido não desativa produtos. Uma extração vazia exige revisão humana e preserva o catálogo.
+config.json contém segredos: nunca publique, compartilhe ou envie esse arquivo para a hospedagem.
+Uma verificação local não comprova ausência de malware nem compatibilidade com toda versão do VR.

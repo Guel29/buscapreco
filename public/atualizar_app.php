@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/auth-session.php';
+requireAdminSession();
 /**
  * ==============================================================================
  * ARQUIVO DE ATUALIZAÇÃO DO APP E BANCO DE DADOS - HOSTINGER
@@ -9,11 +12,11 @@
  */
 
 // Configurações do Banco de Dados na Hostinger
-$DB_HOST = 'localhost';
-$DB_PORT = 3306;
-$DB_NAME = 'u366235819_busca';   // Altere para o seu banco na Hostinger
-$DB_USER = 'u366235819_busca';   // Altere para o seu usuário MySQL na Hostinger
-$DB_PASS = 'SuaSenhaAqui';       // Altere para a sua senha na Hostinger
+$DB_HOST = DB_HOST;
+$DB_PORT = DB_PORT;
+$DB_NAME = DB_NAME;
+$DB_USER = DB_USER;
+$DB_PASS = DB_PASS;
 $SUBDOMINIO = 'buscapreco.instara.com.br';
 
 date_default_timezone_set('America/Sao_Paulo');

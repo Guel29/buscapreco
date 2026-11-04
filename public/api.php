@@ -8,6 +8,29 @@
  */
 
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/auth-session.php';
+set_exception_handler(function ($error) {
+    error_log('API não concluída: ' . get_class($error));
+    sendJson(['success' => false, 'error' => 'Operação não concluída. Verifique a instalação e o banco.'], 500);
+});
+
+$action = isset($_GET['action']) ? trim($_GET['action']) : 'status';
+// Normaliza ação para remover leading/trailing slashes
+$action = trim($action, '/');
+$method = $_SERVER['REQUEST_METHOD'];
+if (!in_array($method, ['GET', 'HEAD'], true) ||
+    !in_array($action, ['status', 'search', 'products', 'produtos', 'stores', 'lojas', 'printers', 'sync/verify', 'sync/test-product', 'mysql/schema'], true)) {
+    requireAdminSession();
+}
+
+// Captura payload JSON de requisições POST/PUT
+$inputJSON = file_get_contents('php://input');
+$inputData = json_decode($inputJSON, true) ?: $_POST;
+if (in_array($method, ['GET', 'HEAD'], true) && $inputJSON !== '') {
+    sendJson(['error' => 'Corpo não permitido neste método.'], 400);
+}
+
+
 
 // Tenta obter conexão sem interromper o script caso ainda esteja sendo configurado
 $pdo = getDbConnection(null, true);
@@ -26,7 +49,7 @@ function ensureTablesExist($pdo) {
     try {
         $pdo->exec("
             CREATE TABLE IF NOT EXISTS lojas (
-                id INT PRIMARY KEY,
+                id INT AUTO_INCREMENT PRIMARY KEY,
                 nome VARCHAR(100) NOT NULL,
                 cnpj VARCHAR(30) DEFAULT '00.000.000/0000-00',
                 endereco VARCHAR(255) DEFAULT 'Endereço da Loja',
@@ -87,7 +110,7 @@ function ensureTablesExist($pdo) {
                 `database` VARCHAR(100) DEFAULT 'vr',
                 user VARCHAR(100) DEFAULT 'postgres',
                 password VARCHAR(255) DEFAULT '',
-                ssl TINYINT(1) DEFAULT 0,
+                `ssl` TINYINT(1) DEFAULT 0,
                 id_loja INT DEFAULT 1,
                 id_situacaocadastro INT DEFAULT 1,
                 intervalo_minutos INT DEFAULT 10,
@@ -108,6 +131,17 @@ function ensureTablesExist($pdo) {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
         ");
 
+        // Older installers used database_name/user_name. Add the API columns
+        // without discarding the previously saved values.
+        $columns = array_column($pdo->query('SHOW COLUMNS FROM configuracao_erp')->fetchAll(), 'Field');
+        foreach (['database' => 'VARCHAR(100) DEFAULT NULL', 'user' => 'VARCHAR(100) DEFAULT NULL', 'id_situacaocadastro' => 'INT DEFAULT 3'] as $name => $definition) {
+            if (!in_array($name, $columns, true)) {
+                $pdo->exec("ALTER TABLE configuracao_erp ADD COLUMN `{$name}` {$definition}");
+                $legacy = $name === 'database' ? 'database_name' : ($name === 'user' ? 'user_name' : null);
+                if ($legacy && in_array($legacy, $columns, true)) $pdo->exec("UPDATE configuracao_erp SET `{$name}` = `{$legacy}`");
+            }
+        }
+
         // Insere Loja 1 padrão se não existir nenhuma
         $stmtCount = $pdo->query("SELECT COUNT(*) as c FROM lojas");
         $rowCount = $stmtCount->fetch();
@@ -115,22 +149,14 @@ function ensureTablesExist($pdo) {
             $pdo->exec("INSERT IGNORE INTO lojas (id, nome, cnpj, endereco, ativa) VALUES (1, 'Supermercado Modelo · Loja 01 (Matriz)', '00.000.000/0001-00', 'Av. Principal, 1000 - Centro', 1)");
         }
     } catch (Exception $e) {
-        // Prossegue mesmo se tabela já existir
+        throw new RuntimeException('Não foi possível preparar as tabelas.', 0, $e);
     }
 }
 
-if ($pdo) {
+// Read-only kiosk requests should not run DDL on every barcode scan.
+if ($pdo && !in_array($action, ['status', 'search', 'products', 'produtos', 'stores', 'lojas', 'printers'], true)) {
     ensureTablesExist($pdo);
 }
-
-$action = isset($_GET['action']) ? trim($_GET['action']) : 'status';
-// Normaliza ação para remover leading/trailing slashes
-$action = trim($action, '/');
-$method = $_SERVER['REQUEST_METHOD'];
-
-// Captura payload JSON de requisições POST/PUT
-$inputJSON = file_get_contents('php://input');
-$inputData = json_decode($inputJSON, true) ?: $_POST;
 
 switch ($action) {
 
@@ -196,8 +222,8 @@ switch ($action) {
         if (!$prod && ctype_digit($q)) {
             $unpadded = ltrim($q, '0');
             if (!empty($unpadded)) {
-                $stmt = $pdo->prepare("SELECT * FROM produtos WHERE id_loja = :id_loja AND (TRIM(LEADING '0' FROM codigo_barras) = :unpadded OR TRIM(LEADING '0' FROM codigo_interno) = :unpadded) AND ativo = 1 LIMIT 1");
-                $stmt->execute([':id_loja' => $id_loja, ':unpadded' => $unpadded]);
+                $stmt = $pdo->prepare("SELECT * FROM produtos WHERE id_loja = :id_loja AND (TRIM(LEADING '0' FROM codigo_barras) = :unpadded OR TRIM(LEADING '0' FROM codigo_interno) = :internal) AND ativo = 1 LIMIT 1");
+                $stmt->execute([':id_loja' => $id_loja, ':unpadded' => $unpadded, ':internal' => $unpadded]);
                 $prod = $stmt->fetch();
             }
         }
@@ -211,8 +237,8 @@ switch ($action) {
         }
 
         // Verificar se está inativo (estritamente por código EAN/Interno)
-        $stmt = $pdo->prepare("SELECT descricao, codigo_interno, codigo_barras FROM produtos WHERE id_loja = :id_loja AND (codigo_barras = :q OR codigo_interno = :q) AND ativo = 0 LIMIT 1");
-        $stmt->execute([':id_loja' => $id_loja, ':q' => $q]);
+        $stmt = $pdo->prepare("SELECT descricao, codigo_interno, codigo_barras FROM produtos WHERE id_loja = :id_loja AND (codigo_barras = :q OR codigo_interno = :internal) AND ativo = 0 LIMIT 1");
+        $stmt->execute([':id_loja' => $id_loja, ':q' => $q, ':internal' => $q]);
         $inactive = $stmt->fetch();
 
         if ($inactive) {
@@ -231,7 +257,7 @@ switch ($action) {
         $id_loja = isset($_GET['id_loja']) ? (int)$_GET['id_loja'] : 1;
 
         if (!$pdo) {
-            sendJson([], 200);
+            sendJson(['error' => 'BANCO_NAO_CONECTADO'], 503);
         }
 
         if ($method === 'DELETE') {
@@ -361,9 +387,17 @@ switch ($action) {
         $stmtStore->execute([':id_loja' => $id_loja]);
         $store = $stmtStore->fetch();
 
+        $stmtERP = $pdo->prepare("SELECT MAX(data_hora) FROM logs_sincronizacao WHERE id_loja=? AND status='SUCESSO' AND mensagem LIKE 'Carga VR confirmada:%'");
+        $stmtERP->execute([$id_loja]);
+        $lastERP = $stmtERP->fetchColumn() ?: null;
+        $recentERP = $lastERP && strtotime($lastERP) > time() - 1200;
+
         sendJson([
             'success' => true,
             'banco_online' => true,
+            'erp_conectado' => (bool)$recentERP,
+            'agente_online' => (bool)$recentERP,
+            'ultima_carga_erp' => $lastERP,
             'servidor' => 'Hostinger MySQL PHP API',
             'loja_atual' => $id_loja,
             'nome_loja' => $store ? $store['nome'] : 'Loja ' . $id_loja,
@@ -560,7 +594,7 @@ switch ($action) {
             }
 
             $stmt = $pdo->prepare("
-                INSERT INTO configuracao_erp (id, nome_loja, host, port, `database`, user, password, ssl, id_loja, id_situacaocadastro, intervalo_minutos, sincronizacao_automatica, custom_query)
+                INSERT INTO configuracao_erp (id, nome_loja, host, port, `database`, user, password, `ssl`, id_loja, id_situacaocadastro, intervalo_minutos, sincronizacao_automatica, custom_query)
                 VALUES (1, :nome_loja, :host, :port, :database, :user, :password, :ssl, :id_loja, :id_situacaocadastro, :intervalo_minutos, :sincronizacao_automatica, :custom_query)
                 ON DUPLICATE KEY UPDATE
                     nome_loja = VALUES(nome_loja),
@@ -569,7 +603,7 @@ switch ($action) {
                     `database` = VALUES(`database`),
                     user = VALUES(user),
                     password = VALUES(password),
-                    ssl = VALUES(ssl),
+                    `ssl` = VALUES(`ssl`),
                     id_loja = VALUES(id_loja),
                     id_situacaocadastro = VALUES(id_situacaocadastro),
                     intervalo_minutos = VALUES(intervalo_minutos),

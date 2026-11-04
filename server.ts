@@ -6,6 +6,9 @@ import JSZip from 'jszip';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
+import 'dotenv/config';
+import { installAdminAuth } from './src/serverAuth';
+import { createHostingerPackage } from './scripts/hostinger-package.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -15,6 +18,7 @@ const PORT = 3000;
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
+installAdminAuth(app);
 
 // In-memory data store with file persistence
 const DATA_FILE = path.join(process.cwd(), '.central_db.json');
@@ -63,7 +67,7 @@ let erpConfig = {
   port: 8745,
   database: 'vr',
   user: 'postgres',
-  password: 'VrPost@Server',
+  password: '',
   ssl: false,
   id_loja: 1,
   id_situacaocadastro: 3,
@@ -269,11 +273,11 @@ function savePersistedData() {
   }
 }
 
-loadPersistedData();
-
 let lastSyncTimestamp = new Date().toISOString();
 let nextSyncTimestamp = new Date(Date.now() + 600000).toISOString();
 let erpConnectedStatus = false;
+
+loadPersistedData();
 
 // Background Sync Timer
 let syncIntervalHandle: NodeJS.Timeout | null = null;
@@ -544,33 +548,6 @@ function getRelativeTimeBR(isoString: string | null | undefined): string {
 // API ROUTES
 // -------------------------------------------------------------
 
-// Helper to recursively add directory contents to root of JSZip
-function addDirectoryToZipRoot(localDir: string, zipInstance: JSZip) {
-  if (!fs.existsSync(localDir)) return;
-  const items = fs.readdirSync(localDir);
-  for (const item of items) {
-    const fullPath = path.join(localDir, item);
-    const stat = fs.statSync(fullPath);
-    if (stat.isDirectory()) {
-      const subFolder = zipInstance.folder(item)!;
-      const addSub = (dir: string, zf: JSZip) => {
-        const subItems = fs.readdirSync(dir);
-        for (const s of subItems) {
-          const p = path.join(dir, s);
-          if (fs.statSync(p).isDirectory()) {
-            addSub(p, zf.folder(s)!);
-          } else {
-            zf.file(s, fs.readFileSync(p));
-          }
-        }
-      };
-      addSub(fullPath, subFolder);
-    } else {
-      zipInstance.file(item, fs.readFileSync(fullPath));
-    }
-  }
-}
-
 // Download 10-Minute Automatic Sync Batch Script (.BAT)
 app.get('/api/deploy/download-sync-bat', (req: Request, res: Response) => {
   try {
@@ -687,43 +664,7 @@ app.get('/api/deploy/download-updater-php', (req: Request, res: Response) => {
 // Download Complete Installation ZIP for Hostinger (Subdomain buscapreco.instara.com.br)
 app.get(['/api/deploy/download-instalacao-zip', '/api/deploy/download-hostinger-zip'], async (req: Request, res: Response) => {
   try {
-    const zip = new JSZip();
-
-    // 1. Add compiled frontend build directly at the ROOT of the ZIP
-    const distPath = path.join(process.cwd(), 'dist');
-    if (fs.existsSync(distPath)) {
-      addDirectoryToZipRoot(distPath, zip);
-    }
-
-    // 2. Add PHP API, backend scripts, and configs at the ROOT of the ZIP
-    const publicPath = path.join(process.cwd(), 'public');
-    ['api.php', 'config.php', 'install.php', 'atualizar_app.php', 'atualizar_produtos.php', '.htaccess', 'sincronizar_automatico_10min.bat', 'instalar_agendador_10min.bat', 'sincronizar_nuvem.ps1', 'schema_buscapreco.sql'].forEach((f) => {
-      const p = path.join(publicPath, f);
-      if (fs.existsSync(p)) zip.file(f, fs.readFileSync(p));
-    });
-
-    // 3. Add Installation Readme
-    const readmeContent = `================================================================================
-INSTALAÇÃO DO SISTEMA BUSCA PREÇO NA HOSTINGER (buscapreco.instara.com.br)
-================================================================================
-
-1. EXTRAÇÃO:
-   - Abra o Gerenciador de Arquivos no hPanel da Hostinger.
-   - Navegue até a pasta do seu subdomínio (ex: public_html/ ou public_html/buscapreco).
-   - Faça upload deste arquivo ZIP e clique em EXTRAIR.
-   - Certifique-se de que os arquivos (index.html, pasta assets/, api.php, config.php, .htaccess)
-     fiquem diretamente na raiz da pasta do subdomínio.
-
-2. CONFIGURAÇÃO DO BANCO:
-   - As credenciais podem ser salvas diretamente no Painel Administrativo ou no 'config.php'.
-
-3. PRONTO!
-   - Acesse: https://buscapreco.instara.com.br
-   - Seu sistema completo de busca preço estará 100% operacional e idêntico ao modelo!
-================================================================================`;
-    zip.file('LEIA-ME_INSTALACAO.txt', readmeContent);
-
-    const buffer = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE', compressionOptions: { level: 9 } });
+    const buffer = await createHostingerPackage(process.cwd());
     res.setHeader('Content-Type', 'application/zip');
     res.setHeader('Content-Disposition', 'attachment; filename="buscapreco_instalacao_completa.zip"');
     res.setHeader('Content-Length', buffer.length);
@@ -737,22 +678,7 @@ INSTALAÇÃO DO SISTEMA BUSCA PREÇO NA HOSTINGER (buscapreco.instara.com.br)
 // Download Complete Update Package ZIP for Hostinger
 app.get('/api/deploy/download-atualizacao-zip', async (req: Request, res: Response) => {
   try {
-    const zip = new JSZip();
-
-    // 1. Add compiled frontend build directly at the ROOT of the ZIP
-    const distPath = path.join(process.cwd(), 'dist');
-    if (fs.existsSync(distPath)) {
-      addDirectoryToZipRoot(distPath, zip);
-    }
-
-    // 2. Add updated PHP scripts and updater
-    const publicPath = path.join(process.cwd(), 'public');
-    ['api.php', 'config.php', 'atualizar_app.php', 'atualizar_produtos.php', 'install.php', '.htaccess', 'sincronizar_automatico_10min.bat', 'schema_buscapreco.sql'].forEach((f) => {
-      const p = path.join(publicPath, f);
-      if (fs.existsSync(p)) zip.file(f, fs.readFileSync(p));
-    });
-
-    const buffer = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE', compressionOptions: { level: 9 } });
+    const buffer = await createHostingerPackage(process.cwd());
     res.setHeader('Content-Type', 'application/zip');
     res.setHeader('Content-Disposition', 'attachment; filename="buscapreco_pacote_atualizacao.zip"');
     res.setHeader('Content-Length', buffer.length);
@@ -1083,14 +1009,14 @@ app.post('/api/mysql/sync-from-mysql', async (req: Request, res: Response) => {
 
 // System Status
 app.get('/api/status', (req: Request, res: Response) => {
-  const lojaAtual = erpConfig.id_loja;
+  const lojaAtual = Number(req.query.id_loja || erpConfig.id_loja);
   const totalLoja = centralProducts.filter((p) => p.id_loja === lojaAtual);
   const totalAtivos = totalLoja.filter((p) => p.ativo !== false).length;
   const totalInativos = totalLoja.filter((p) => p.ativo === false).length;
   const isAgentOnline = localAgentStatus.online && (Date.now() - new Date(localAgentStatus.ultima_comunicacao).getTime() < 120000);
 
   res.json({
-    nome_loja: erpConfig.nome_loja || stores.find((s) => s.id === erpConfig.id_loja)?.nome || 'Supermercado Modelo · Loja 01 (Matriz)',
+    nome_loja: (lojaAtual === erpConfig.id_loja ? erpConfig.nome_loja : '') || stores.find((s) => s.id === lojaAtual)?.nome || `Loja ${lojaAtual}`,
     erp_conectado: erpConnectedStatus,
     internet_online: true,
     banco_online: true,
@@ -1099,13 +1025,13 @@ app.get('/api/status', (req: Request, res: Response) => {
     ultima_sincronizacao: lastSyncTimestamp,
     ultima_sincronizacao_formatada: formatDateTimeBR(lastSyncTimestamp),
     proxima_sincronizacao: nextSyncTimestamp,
-    total_produtos: centralProducts.length,
+    total_produtos: totalLoja.length,
     total_produtos_ativos: totalAtivos,
     total_produtos_inativos: totalInativos,
     agente_online: isAgentOnline,
     agente_ultima_comunicacao: localAgentStatus.ultima_comunicacao,
     status_sincronizacao_nuvem: totalAtivos > 0 || lastSyncTimestamp ? 'SINCRONIZADO' : 'AGUARDANDO',
-    loja_atual: erpConfig.id_loja,
+    loja_atual: lojaAtual,
     tempo_retorno_segundos: 5,
   });
 });

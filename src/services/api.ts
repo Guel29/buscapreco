@@ -19,9 +19,9 @@ export async function checkOnline(): Promise<boolean> {
   }
 }
 
-export async function fetchSystemStatus(): Promise<SystemStatus> {
+export async function fetchSystemStatus(idLoja: number = 1): Promise<SystemStatus> {
   try {
-    const res = await fetch(`${BASE_URL}/api/status`);
+    const res = await fetch(`${BASE_URL}/api/status?id_loja=${idLoja}`);
     if (res.ok) {
       return await res.json();
     }
@@ -29,20 +29,20 @@ export async function fetchSystemStatus(): Promise<SystemStatus> {
 
   // Fallback to Hostinger PHP backend
   try {
-    const phpRes = await fetch(`${BASE_URL}/api.php?action=status`);
+    const phpRes = await fetch(`${BASE_URL}/api.php?action=status&id_loja=${idLoja}`);
     if (phpRes.ok) {
       const phpData = await phpRes.json();
       return {
-        erp_conectado: true,
+        erp_conectado: Boolean(phpData.erp_conectado),
         internet_online: true,
-        banco_online: true,
+        banco_online: Boolean(phpData.banco_online),
         cache_local_atualizado: true,
         impressora_online: true,
         ultima_sincronizacao: phpData.ultima_sincronizacao,
         ultima_sincronizacao_formatada: formatDateTimeBR(phpData.ultima_sincronizacao),
         proxima_sincronizacao: null,
         total_produtos: phpData.total_produtos || 0,
-        total_produtos_ativos: phpData.total_produtos_ativos || phpData.total_produtos || 0,
+        total_produtos_ativos: phpData.total_produtos_ativos ?? phpData.total_produtos ?? 0,
         total_produtos_inativos: phpData.total_produtos_inativos || 0,
         loja_atual: phpData.loja_atual || 1,
         tempo_retorno_segundos: 5,
@@ -74,7 +74,8 @@ export async function fetchSyncVerification(idLoja: number = 1): Promise<SyncVer
   try {
     const res = await fetch(`${BASE_URL}/api/sync/verify?id_loja=${idLoja}`);
     if (res.ok) {
-      return await res.json();
+      const data = await res.json();
+      if (data.agente && typeof data.is_synced === 'boolean') return data;
     }
   } catch (err) {}
 
@@ -87,25 +88,25 @@ export async function fetchSyncVerification(idLoja: number = 1): Promise<SyncVer
         success: true,
         is_synced: (d.total_produtos || 0) > 0,
         status: (d.total_produtos || 0) > 0 ? 'SINCRONIZADO' : 'AGUARDANDO',
-        status_mensagem: 'MySQL Hostinger Conectado',
+        status_mensagem: d.banco_online ? 'MySQL Hostinger conectado; confira a última carga do VR.' : 'Banco MySQL indisponível.',
         ultima_sincronizacao: d.ultima_sincronizacao,
         ultima_sincronizacao_formatada: formatDateTimeBR(d.ultima_sincronizacao),
-        tempo_relativo: 'Recente',
+        tempo_relativo: d.agente_online ? 'Carga recente' : 'Sem carga recente',
         proxima_sincronizacao: null,
         proxima_sincronizacao_formatada: 'A cada 10 min',
         id_loja: d.loja_atual || idLoja,
         nome_loja: d.nome_loja || 'Supermercado Modelo',
         total_produtos_nuvem: d.total_produtos || 0,
-        total_produtos_ativos: d.total_produtos_ativos || d.total_produtos || 0,
+        total_produtos_ativos: d.total_produtos_ativos ?? d.total_produtos ?? 0,
         total_produtos_inativos: d.total_produtos_inativos || 0,
         agente: {
-          online: true,
-          ultima_comunicacao: d.ultima_sincronizacao,
-          ultima_comunicacao_formatada: formatDateTimeBR(d.ultima_sincronizacao),
+          online: Boolean(d.agente_online),
+          ultima_comunicacao: d.ultima_carga_erp || null,
+          ultima_comunicacao_formatada: formatDateTimeBR(d.ultima_carga_erp),
           host_local: 'localhost',
           banco: 'MySQL Hostinger',
           loja: d.loja_atual || idLoja,
-          ultimo_status: 'Online',
+          ultimo_status: d.agente_online ? 'Carga VR confirmada recentemente' : 'Aguardando carga confirmada do VR',
           erros_recentes: '',
         },
         ultimos_produtos_sincronizados: [],
@@ -177,6 +178,10 @@ export async function searchProduct(term: string, idLoja: number = 1): Promise<P
     if (res.ok) {
       return await res.json();
     }
+    if (res.status === 404) {
+      const data = await res.json();
+      if (['PRODUTO NÃO ENCONTRADO', 'PRODUTO INATIVO NO CADASTRO'].includes(data.error)) return null;
+    }
   } catch (err) {}
 
   // 2. Attempt direct Hostinger PHP backend
@@ -186,6 +191,10 @@ export async function searchProduct(term: string, idLoja: number = 1): Promise<P
     );
     if (phpRes.ok) {
       return await phpRes.json();
+    }
+    if (phpRes.status === 404) {
+      const data = await phpRes.json();
+      if (['PRODUTO NÃO ENCONTRADO', 'PRODUTO INATIVO NO CADASTRO'].includes(data.error)) return null;
     }
   } catch {}
 
@@ -198,23 +207,17 @@ export async function searchProduct(term: string, idLoja: number = 1): Promise<P
  * Preloads and updates local IndexedDB cache with all store products
  */
 export async function syncLocalCache(idLoja: number = 1): Promise<number> {
-  try {
-    let products: Product[] | null = null;
-    const res = await fetch(`${BASE_URL}/api/products?id_loja=${idLoja}`);
-    if (res.ok) {
-      products = await res.json();
-    } else {
-      const phpRes = await fetch(`${BASE_URL}/api.php?action=products&id_loja=${idLoja}`);
-      if (phpRes.ok) {
-        products = await phpRes.json();
-      }
-    }
-    if (products && Array.isArray(products)) {
+  for (const url of [`${BASE_URL}/api/products?id_loja=${idLoja}`, `${BASE_URL}/api.php?action=products&id_loja=${idLoja}`]) {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) continue;
+      const products = await response.json();
+      if (!Array.isArray(products)) continue;
       await localDB.saveProducts(products);
       return products.length;
+    } catch {
+      // Try the PHP route before treating the service as offline.
     }
-  } catch (err) {
-    console.error('Falha ao sincronizar cache local:', err);
   }
   return 0;
 }

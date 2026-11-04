@@ -6,3 +6,7 @@ coverage/
 *.log
 .env*
 !.env.example
+.admin-auth.json
+public/config_db.json
+public/.auth-rate-*.json
+public/erp-agent/config.json

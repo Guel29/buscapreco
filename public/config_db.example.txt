@@ -1,0 +1,9 @@
+{
+  "host": "localhost",
+  "port": 3306,
+  "database": "",
+  "user": "",
+  "password": "",
+  "erp_sync_token": "",
+  "erp_sync_loja": 1
+}
