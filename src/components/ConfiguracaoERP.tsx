@@ -51,8 +51,8 @@ INNER JOIN produtocomplemento pc
     ON pc.id_produto = pr.id_produto
 INNER JOIN tipoembalagem te
     ON te.id = p.id_tipoembalagem
-WHERE (p.id_situacaocadastro = $1 OR p.id_situacaocadastro IN (1, 3) OR 1=1)
-  AND (pc.id_loja = $2 OR pc.id_loja IS NULL)
+WHERE pc.id_situacaocadastro = $1
+  AND pc.id_loja = $2
 ORDER BY pr.id_produto;`;
 
 export const ConfiguracaoERP: React.FC<ConfiguracaoERPProps> = ({ onSyncCompleted }) => {
@@ -1215,7 +1215,7 @@ export const ConfiguracaoERP: React.FC<ConfiguracaoERPProps> = ({ onSyncComplete
                   className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-3.5 py-2 text-white font-mono focus:outline-none focus:border-emerald-500"
                   required
                 />
-                <span className="text-[11px] text-neutral-500">p.id_situacaocadastro</span>
+                <span className="text-[11px] text-neutral-500">pc.id_situacaocadastro</span>
               </div>
 
               <div>

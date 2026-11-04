@@ -59,11 +59,18 @@ test('VR PostgreSQL → staged PHP/MySQL sync → price lookup', { skip: !base }
   assert.equal((await fetch(base + '/erp-agent/config.example.json')).status, 200);
   const products = await readProducts(config, pg.Client);
   assert.equal(products.length, 2);
-  assert.equal(products[0].codigo_barras, '007891000100103');
+  assert.equal(products[0].codigo_barras, '7891000100103');
   assert.equal(products[0].preco, 12.34);
+  const otherStore = await readProducts({ ...config, id_loja: 2 }, pg.Client);
+  assert.equal(otherStore.length, 1, 'Active status must be evaluated for the selected store, not globally on produto.');
+  assert.equal(otherStore[0].codigo_interno, '103');
+  assert.equal(otherStore[0].preco, 7.89);
   const client = new pg.Client(config.postgres);
   await client.connect();
-  try { await assert.rejects(client.query('UPDATE produto SET descricaocompleta=descricaocompleta'), { code: '42501' }); }
+  try {
+    await assert.rejects(client.query('SELECT p.id_situacaocadastro FROM produto p'), { code: '42703' });
+    await assert.rejects(client.query('UPDATE produto SET descricaocompleta=descricaocompleta'), { code: '42501' });
+  }
   finally { await client.end(); }
   const incompatible = VR_QUERY.replace('p.id_tipoembalagem', 'p.diagnostico_coluna_ausente');
   const diagnostic = await collectDiagnostic(config, pg.Client, async () => {
@@ -84,7 +91,7 @@ test('VR PostgreSQL → staged PHP/MySQL sync → price lookup', { skip: !base }
   assert.ok(cloudStatus.ultima_carga_erp);
   const found = await api('/api/products/search?q=_007891000100103_&id_loja=1');
   assert.equal(found.preco, 12.34);
-  assert.equal(found.codigo_barras, '007891000100103');
+  assert.equal(found.codigo_barras, '7891000100103');
   assert.equal((await api('/api/products/search?q=101&id_loja=1')).codigo_barras, found.codigo_barras);
   assert.equal((await fetch(base + '/api/products/search?q=INEXISTENTE&id_loja=1')).status, 404);
   assert.equal((await fetch(base + '/api/products/search?q=7891000100103&id_loja=1')).status, 200);

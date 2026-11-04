@@ -1,5 +1,13 @@
 # Integrador completo como serviço do Windows
 
+Versão **1.0.1**: corrige o erro 42703 usando
+`produtocomplemento.id_situacaocadastro`, conforme o diagnóstico do VR da loja.
+A situação ativa e o preço são filtrados por loja. Para atualizar, execute o
+novo instalador como administrador mantendo **Manter a configuração existente**
+marcado. Ao terminar, abra Serviços e inicie **Busca Preço - Integrador VR** para
+testar a carga sem precisar reiniciar o computador. O serviço continua automático
+nas próximas inicializações do Windows.
+
 O arquivo `BuscaPrecoIntegrador-Setup.exe` inclui Node.js 24 LTS para Windows x64,
 o driver PostgreSQL e o integrador VR. Não exige instalar Node.js ou npm na loja.
 

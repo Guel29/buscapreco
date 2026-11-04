@@ -11,7 +11,7 @@ FROM produtoautomacao pr
 JOIN produto p ON p.id = pr.id_produto
 JOIN produtocomplemento pc ON pc.id_produto = pr.id_produto
 LEFT JOIN tipoembalagem te ON te.id = p.id_tipoembalagem
-WHERE p.id_situacaocadastro = $1 AND pc.id_loja = $2
+WHERE pc.id_situacaocadastro = $1 AND pc.id_loja = $2
 ORDER BY pr.id_produto, pr.codigobarras`;
 
 export function validateConfig(config) {

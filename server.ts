@@ -102,8 +102,8 @@ INNER JOIN produtocomplemento pc
     ON pc.id_produto = pr.id_produto
 INNER JOIN tipoembalagem te
     ON te.id = p.id_tipoembalagem
-WHERE (p.id_situacaocadastro = $1 OR p.id_situacaocadastro IN (1, 3) OR 1=1)
-  AND (pc.id_loja = $2 OR pc.id_loja IS NULL)
+WHERE pc.id_situacaocadastro = $1
+  AND pc.id_loja = $2
 ORDER BY pr.id_produto;`;
 
 let terminals = [
@@ -1630,7 +1630,7 @@ app.get('/api/integrador/status', (req: Request, res: Response) => {
 
 // ERP Connection Test (Strictly Read Only with Latency Ping)
 app.post('/api/erp/test-connection', async (req: Request, res: Response) => {
-  const { host, port, database, user, password, ssl, id_situacao } = req.body;
+  const { host, port, database, user, password, ssl, id_situacao, id_situacaocadastro, id_loja } = req.body;
   const startPing = Date.now();
 
   // Verify parameters
@@ -1718,7 +1718,8 @@ app.post('/api/erp/test-connection', async (req: Request, res: Response) => {
 
     // Test simple count query and version
     const versionRes = await client.query('SELECT version();');
-    const check = await client.query('SELECT count(*) FROM produto WHERE id_situacaocadastro = $1', [id_situacao || 1]);
+    const check = await client.query('SELECT count(*) FROM produtocomplemento WHERE id_situacaocadastro = $1 AND id_loja = $2',
+      [id_situacao ?? id_situacaocadastro ?? erpConfig.id_situacaocadastro, id_loja ?? erpConfig.id_loja]);
     await client.end();
 
     const latency = Date.now() - startPing;
@@ -1861,7 +1862,7 @@ INNER JOIN produtocomplemento pc
     ON pc.id_produto = pr.id_produto
 LEFT JOIN tipoembalagem te
     ON te.id = p.id_tipoembalagem
-WHERE p.id_situacaocadastro = $1
+WHERE pc.id_situacaocadastro = $1
 AND pc.id_loja = $2
 ORDER BY pr.id_produto;\`;
 

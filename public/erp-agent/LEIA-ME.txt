@@ -1,5 +1,8 @@
 INTEGRADOR VR / POSTGRESQL — BUSCA PREÇO
 
+Versão 1.0.1: situação de cadastro filtrada em produtocomplemento por loja,
+conforme o esquema VR diagnosticado. A consulta não altera o banco do ERP.
+
 Este agente roda no servidor Windows da loja; a Hostinger recebe os produtos por HTTPS.
 Não abra a porta do PostgreSQL na Internet. Use um usuário limitado a SELECT nas tabelas produto,
 produtoautomacao, produtocomplemento e tipoembalagem do banco VR.
