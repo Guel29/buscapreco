@@ -25,7 +25,8 @@ scripts recebidos da Internet.
    com o ID da loja autorizada. Não publique tokens nem credenciais no GitHub,
    em capturas ou em mensagens. Remova o arquivo temporário depois de guardar o
    valor nas configurações necessárias.
-5. Abra o aplicativo e o painel com **Ctrl+F12**. No primeiro acesso, escolha uma
+5. Abra o aplicativo e o painel com **F8** (ou **Ctrl+F12**, ou três cliques no nome
+   da loja). O modo de etiquetas usa **Ctrl+F8**. No primeiro acesso, escolha uma
    senha com pelo menos 10 caracteres e informe o token de configuração. Esse
    procedimento só funciona enquanto não existe administrador. As senhas são
    armazenadas como hash no servidor; o token não é uma senha alternativa de login.
@@ -38,6 +39,16 @@ scripts recebidos da Internet.
 Uma atualização preserva configurações e dados, mas a nova proteção exige criar
 o administrador antes de usar as operações do painel. O painel fica bloqueado
 se o token/senha ainda não foram configurados; isso não impede consultas públicas.
+
+### Esqueci a senha do painel
+
+Pelo Gerenciador de Arquivos da Hostinger, edite somente o valor de
+`admin_password_hash` para `""` no `config_db.json`, preservando o MySQL, token e
+demais campos. Atualize o site com Ctrl+F5 e abra o painel. No primeiro acesso,
+informe uma nova senha com pelo menos 10 caracteres e o valor de `erp_sync_token`
+do mesmo arquivo, sem aspas. Esse procedimento exige acesso administrativo à
+hospedagem; não existe senha padrão alternativa de entrada. Se já houve bloqueio
+por tentativas, aguarde 15 minutos antes de tentar novamente.
 
 ## Instalar o integrador no Windows da loja
 

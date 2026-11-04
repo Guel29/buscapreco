@@ -50,6 +50,18 @@ disponível para usuários locais e não incluem senhas ou tokens.
 falha não significa que a nuvem foi atualizada: só uma confirmação completa conta
 como sucesso. O catálogo anterior é preservado em cargas incompletas.
 
+## Diagnosticar o erro 42703
+
+O SQLSTATE 42703 indica uma coluna ausente na consulta do VR. Execute a ferramenta
+`DiagnosticoVR.exe` como administrador no computador com o integrador instalado.
+Ela usa o runtime e a configuração existentes, testa a consulta em modo somente
+leitura e abre `logs/diagnostico-vr.txt`. O relatório mostra a coluna ausente e os
+nomes/tipos das colunas das quatro tabelas esperadas. Ele não mostra senhas, token,
+descrições de produtos ou preços e não envia cargas para a Hostinger. Compartilhe
+esse relatório para ajustar a consulta à versão real do VR, preservando o banco.
+O executável é gerado com `npm run build:diagnostic` após preparar o compilador
+com `npm run build:windows`.
+
 ## Alterar e remover
 
 Para mudar os dados, execute novamente o instalador como administrador e desmarque

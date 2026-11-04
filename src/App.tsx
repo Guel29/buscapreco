@@ -289,6 +289,7 @@ export function App() {
         activePrinter={activePrinter}
         printers={printers}
         onOpenAdmin={() => setIsAdminOpen(true)}
+        isAdminOpen={isAdminOpen}
         isOffline={isOffline}
         customBackground={customBackground}
       />

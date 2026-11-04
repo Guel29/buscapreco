@@ -3,6 +3,8 @@ import { randomUUID } from 'node:crypto';
 import test from 'node:test';
 import pg from 'pg';
 import { readProducts, sendSnapshot } from '../public/erp-agent/integrador.mjs';
+import { VR_QUERY } from '../public/erp-agent/integrador.mjs';
+import { collectDiagnostic } from '../installer/windows/diagnostic.mjs';
 
 const base = process.env.BUSCAPRECO_TEST_URL;
 test('VR PostgreSQL → staged PHP/MySQL sync → price lookup', { skip: !base }, async () => {
@@ -54,6 +56,18 @@ test('VR PostgreSQL → staged PHP/MySQL sync → price lookup', { skip: !base }
   await client.connect();
   try { await assert.rejects(client.query('UPDATE produto SET descricaocompleta=descricaocompleta'), { code: '42501' }); }
   finally { await client.end(); }
+  const incompatible = VR_QUERY.replace('p.id_tipoembalagem', 'p.diagnostico_coluna_ausente');
+  const diagnostic = await collectDiagnostic(config, pg.Client, async () => {
+    const probe = new pg.Client(config.postgres);
+    try {
+      await probe.connect();
+      await probe.query('BEGIN READ ONLY');
+      await probe.query(incompatible, [3, 1]);
+      return [];
+    } finally { await probe.end(); }
+  }, incompatible);
+  assert.match(diagnostic, /COLUNA AUSENTE: p.diagnostico_coluna_ausente/);
+  assert.match(diagnostic, /public.produto.id_tipoembalagem/);
   const uploaded = await sendSnapshot(config, products, request);
   assert.equal(uploaded.total_processados, 2);
   const cloudStatus = await api('/api.php?action=status&id_loja=1');

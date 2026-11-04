@@ -91,6 +91,15 @@ export const PainelAdmin: React.FC<PainelAdminProps> = ({
 
   const handlePinSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (authBusy) return;
+    if (!pinInput || (needsSetup && pinInput.length < 10)) {
+      setPinError(needsSetup ? 'Crie uma senha com pelo menos 10 caracteres.' : 'Informe a senha.');
+      return;
+    }
+    if (needsSetup && setupToken.length < 32) {
+      setPinError('Informe o token erp_sync_token salvo na Hostinger (pelo menos 32 caracteres).');
+      return;
+    }
     setAuthBusy(true);
     setPinError('');
     try {
@@ -128,16 +137,23 @@ export const PainelAdmin: React.FC<PainelAdminProps> = ({
           </div>
 
           <div>
+            <label htmlFor="admin-password" className="block text-xs text-neutral-300 mb-2">
+              {needsSetup ? 'Nova senha do painel (mínimo 10 caracteres)' : 'Senha do painel'}
+            </label>
             <input
+              id="admin-password"
               type="password"
               maxLength={128}
+              minLength={needsSetup ? 10 : undefined}
+              required
+              autoComplete={needsSetup ? 'new-password' : 'current-password'}
               autoFocus
               value={pinInput}
               onChange={(e) => setPinInput(e.target.value)}
               placeholder="Digite a senha..."
               className="w-full text-center tracking-widest text-2xl font-mono py-3 bg-neutral-950 border border-neutral-700 rounded-xl text-white focus:outline-none focus:border-emerald-500"
             />
-            {needsSetup && <input type="password" value={setupToken} onChange={(e) => setSetupToken(e.target.value)}
+            {needsSetup && <input type="password" required minLength={32} value={setupToken} onChange={(e) => setSetupToken(e.target.value)}
               placeholder="Token de configuração da hospedagem" autoComplete="off"
               className="w-full mt-3 p-3 bg-neutral-950 border border-neutral-700 rounded-xl text-sm" />}
             {pinError && (
@@ -412,7 +428,7 @@ export const PainelAdmin: React.FC<PainelAdminProps> = ({
                 </p>
               </div>
 
-              {/* Informação sobre o atalho secreto Ctrl + F12 */}
+              {/* Administrative shortcuts are described only inside the panel. */}
               <div className="bg-emerald-950/40 border border-emerald-500/30 rounded-2xl p-4 flex items-start gap-3">
                 <div className="p-2 bg-emerald-500/10 rounded-xl text-emerald-400 shrink-0">
                   <Lock className="w-5 h-5" />
@@ -422,10 +438,10 @@ export const PainelAdmin: React.FC<PainelAdminProps> = ({
                     Acesso Seguro e Protegido (Salão de Vendas)
                   </h4>
                   <p className="text-xs text-neutral-300 mt-0.5 leading-relaxed">
-                    O botão de configurações foi ocultado do topo da tela para impedir acessos indevidos por clientes no salão de vendas. Para abrir este painel no terminal:
+                    Para abrir este painel no terminal, use o atalho abaixo. O acesso às configurações exige autenticação no servidor.
                   </p>
                   <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 bg-black/60 border border-emerald-500/40 rounded-lg text-xs font-mono font-bold text-emerald-400">
-                    <span>Ctrl</span> + <span>F12</span> (ou clique 3x no logo)
+                    <span>F8</span> (ou Ctrl + F12; clique 3x no nome da loja)
                   </div>
                 </div>
               </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Product, LabelModel, PrinterConfig, SystemStatus } from '../types';
 import { searchProduct, sendDirectPrint, fetchSystemStatus, triggerInstantLoad } from '../services/api';
 import { formatPrice } from '../services/argoxPrinter';
+import { kioskShortcut } from '../utils/kioskShortcuts';
 import { SupermarketKioskBackdrop } from './SmartinhoHero';
 import { VerificadorSincronizacao } from './VerificadorSincronizacao';
 import {
@@ -31,6 +32,7 @@ interface ConsultaPrecoProps {
   activePrinter: PrinterConfig;
   printers?: PrinterConfig[];
   onOpenAdmin: () => void;
+  isAdminOpen?: boolean;
   isOffline: boolean;
   customBackground?: string | null;
 }
@@ -42,6 +44,7 @@ export const ConsultaPreco: React.FC<ConsultaPrecoProps> = ({
   activePrinter,
   printers = [],
   onOpenAdmin,
+  isAdminOpen = false,
   isOffline,
   customBackground,
 }) => {
@@ -125,6 +128,12 @@ export const ConsultaPreco: React.FC<ConsultaPrecoProps> = ({
 
   // Permanent Focus Keeper: guarantees focus is ALWAYS on the scan field
   useEffect(() => {
+    if (isAdminOpen) {
+      barcodeBufferRef.current = '';
+      if (returnTimerRef.current) clearTimeout(returnTimerRef.current);
+      if (returnCountdownRef.current) clearInterval(returnCountdownRef.current);
+      return;
+    }
     const ensureFocus = () => {
       // Do not steal focus if the user is typing in another input (e.g. admin modals)
       const active = document.activeElement;
@@ -167,7 +176,7 @@ export const ConsultaPreco: React.FC<ConsultaPrecoProps> = ({
       window.removeEventListener('click', handleGlobalClick);
       window.removeEventListener('focus', ensureFocus);
     };
-  }, []);
+  }, [isAdminOpen]);
 
   // Schedule auto return
   const triggerAutoReturn = useCallback(() => {
@@ -370,17 +379,22 @@ export const ConsultaPreco: React.FC<ConsultaPrecoProps> = ({
 
   // Global Keydown Listener for USB Barcode Reader & F8 Shortcut
   useEffect(() => {
+    // Leave password fields and administrative forms entirely to the panel.
+    if (isAdminOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Atalho Secreto: Ctrl + F12 para abrir o Painel Administrativo / Configurações
-      if ((e.ctrlKey || e.metaKey) && (e.key === 'F12' || e.code === 'F12')) {
+      const shortcut = kioskShortcut(e);
+      // F8 opens the hidden administrative entry; Ctrl+F12 remains available.
+      if (shortcut === 'admin') {
         e.preventDefault();
         e.stopPropagation();
+        barcodeBufferRef.current = '';
+        setManualInput('');
         onOpenAdmin();
         return;
       }
 
-      // Toggle Modo Etiqueta with F8
-      if (e.key === 'F8') {
+      // Keep label mode available without conflicting with the admin shortcut.
+      if (shortcut === 'labels') {
         e.preventDefault();
         setModoEtiqueta((prev) => {
           const next = !prev;
@@ -447,7 +461,7 @@ export const ConsultaPreco: React.FC<ConsultaPrecoProps> = ({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [manualInput, handleExecuteSearch, resetToHome, onOpenAdmin, currentProduct, showPrintModal, handleOpenPrintModal]);
+  }, [manualInput, handleExecuteSearch, resetToHome, onOpenAdmin, isAdminOpen, currentProduct, showPrintModal, handleOpenPrintModal]);
 
   const priceParts = currentProduct ? formatPrice(currentProduct.preco) : null;
 
@@ -458,7 +472,13 @@ export const ConsultaPreco: React.FC<ConsultaPrecoProps> = ({
 
       {/* Barra Superior: Somente o Nome da Loja */}
       <header className="w-full py-2.5 px-6 bg-black/40 backdrop-blur-sm border-b border-neutral-800/40 flex items-center justify-center z-20 shrink-0">
-        <h1 className="text-xs md:text-sm font-extrabold text-white uppercase tracking-wider text-center drop-shadow">
+        <h1 onClick={(event) => {
+          if (event.detail === 3) {
+            barcodeBufferRef.current = '';
+            setManualInput('');
+            onOpenAdmin();
+          }
+        }} className="text-xs md:text-sm font-extrabold text-white uppercase tracking-wider text-center drop-shadow">
           {currentStoreName}
         </h1>
       </header>
@@ -470,6 +490,7 @@ export const ConsultaPreco: React.FC<ConsultaPrecoProps> = ({
           <form
             onSubmit={(e) => {
               e.preventDefault();
+              if (isAdminOpen) return;
               let code = (manualInput || inputRef.current?.value || barcodeBufferRef.current || '').trim();
               code = code.replace(/^\][a-zA-Z0-9]{2}/, '').replace(/^_+|_+$/g, '').trim();
               barcodeBufferRef.current = '';
@@ -483,6 +504,7 @@ export const ConsultaPreco: React.FC<ConsultaPrecoProps> = ({
             <input
               ref={inputRef}
               autoFocus
+              disabled={isAdminOpen}
               type="text"
               value={manualInput}
               onChange={(e) => {
@@ -507,6 +529,7 @@ export const ConsultaPreco: React.FC<ConsultaPrecoProps> = ({
               ) : (
                 <button
                   type="submit"
+                  disabled={isAdminOpen}
                   className="px-4 py-2 bg-[#0e1a2d] hover:bg-[#162742] text-slate-200 rounded-lg border border-[#203657] text-xs font-mono font-bold tracking-wider shadow cursor-pointer transition active:scale-95"
                 >
                   ENTER
@@ -702,7 +725,7 @@ export const ConsultaPreco: React.FC<ConsultaPrecoProps> = ({
           </div>
         )}
 
-        {/* MODO ETIQUETA OPERATIONAL HUD (When F8 is active) */}
+        {/* MODO ETIQUETA OPERATIONAL HUD (Ctrl+F8) */}
         {modoEtiqueta && (
           <div className="mt-8 w-full max-w-3xl bg-neutral-900/90 border border-amber-500/40 rounded-2xl p-5 shadow-xl">
             <div className="flex items-center justify-between mb-4 border-b border-neutral-800 pb-3">
