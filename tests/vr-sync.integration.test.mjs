@@ -32,7 +32,14 @@ test('VR PostgreSQL → staged PHP/MySQL sync → price lookup', { skip: !base }
     return r;
   };
   const authState = await (await fetch(base + '/auth.php')).json();
+  assert.equal(authState.backend, 'hostinger-php');
+  assert.equal(authState.config_status, 'valid');
+  assert.equal(authState.token_configured, true);
+  assert.equal(authState.setup_error, null);
   if (!authState.configured) {
+    const rejected = await auth({ operation: 'setup', password: 'test-admin-password', setup_token: 'wrong-configuration-token-000000000000000000' });
+    assert.equal(rejected.status, 401);
+    assert.match((await rejected.json()).error, /erp_sync_token/);
     assert.equal((await auth({ operation: 'setup', password: 'test-admin-password', setup_token: token })).status, 200);
   }
   assert.equal((await auth({ operation: 'login', password: 'wrong' })).status, 401);

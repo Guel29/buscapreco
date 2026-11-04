@@ -71,11 +71,15 @@ export const PainelAdmin: React.FC<PainelAdminProps> = ({
   const [needsSetup, setNeedsSetup] = useState(false);
   const [setupToken, setSetupToken] = useState('');
   const [authBusy, setAuthBusy] = useState(false);
+  const [setupError, setSetupError] = useState('');
+  const [tokenSource, setTokenSource] = useState('config_db.json');
 
   useEffect(() => {
     adminAuth('status').then((state) => {
       setNeedsSetup(!state.configured);
       setIsAuthenticated(Boolean(state.authenticated));
+      setSetupError(state.setup_error || '');
+      setTokenSource(state.setup_token_source || 'config_db.json');
     }).catch((error) => setPinError(error.message));
   }, []);
 
@@ -92,6 +96,7 @@ export const PainelAdmin: React.FC<PainelAdminProps> = ({
   const handlePinSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (authBusy) return;
+    if (needsSetup && setupError) { setPinError(setupError); return; }
     if (!pinInput || (needsSetup && pinInput.length < 10)) {
       setPinError(needsSetup ? 'Crie uma senha com pelo menos 10 caracteres.' : 'Informe a senha.');
       return;
@@ -156,6 +161,10 @@ export const PainelAdmin: React.FC<PainelAdminProps> = ({
             {needsSetup && <input type="password" required minLength={32} value={setupToken} onChange={(e) => setSetupToken(e.target.value)}
               placeholder="Token de configuração da hospedagem" autoComplete="off"
               className="w-full mt-3 p-3 bg-neutral-950 border border-neutral-700 rounded-xl text-sm" />}
+            {needsSetup && <p className="text-xs text-neutral-400 mt-2">
+              {tokenSource === 'ERP_SYNC_TOKEN' ? 'Use o token da variável ERP_SYNC_TOKEN deste servidor.' : 'Use o campo erp_sync_token do config_db.json na mesma pasta do auth.php.'}
+            </p>}
+            {needsSetup && setupError && <p role="alert" className="text-xs text-red-400 mt-2">{setupError}</p>}
             {pinError && (
               <p className="text-xs text-red-400 mt-2 font-semibold">
                 {pinError}
@@ -173,7 +182,7 @@ export const PainelAdmin: React.FC<PainelAdminProps> = ({
             </button>
             <button
               type="submit"
-              disabled={authBusy}
+              disabled={authBusy || (needsSetup && Boolean(setupError))}
               className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition cursor-pointer shadow"
             >
               {authBusy ? 'Verificando...' : needsSetup ? 'Configurar administrador' : 'Entrar'}

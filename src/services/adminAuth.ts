@@ -7,7 +7,8 @@ export async function adminAuth(operation: 'status' | 'login' | 'setup' | 'logou
     if (!(response.headers.get('content-type') || '').includes('application/json')) continue;
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || 'Não foi possível autenticar.');
-    return result as { configured?: boolean; authenticated?: boolean; success?: boolean };
+    return result as { configured?: boolean; authenticated?: boolean; success?: boolean;
+      backend?: string; config_status?: string; setup_error?: string | null; setup_token_source?: string; token_configured?: boolean };
   }
   throw new Error('Autenticação indisponível. Atualize os arquivos do servidor.');
 }

@@ -6,6 +6,7 @@ import net from 'node:net';
 import { fileURLToPath } from 'node:url';
 import JSZip from 'jszip';
 import { createHostingerPackage } from './hostinger-package.mjs';
+import assert from 'node:assert/strict';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const temporary = await fs.mkdtemp(path.join(os.tmpdir(), 'buscapreco-validation-'));
@@ -38,6 +39,35 @@ try {
     try { await fs.access(certificate); build.splice(1, 0, '--secret', `id=proxy_ca,src=${certificate}`); break; } catch {}
   }
   docker(build);
+  const configFixture = path.join(temporary, 'config-fixture');
+  await fs.mkdir(configFixture);
+  await fs.copyFile(path.join(root, 'public/config.php'), path.join(configFixture, 'config.php'));
+  const inspect = "$_SERVER['REQUEST_METHOD']='GET'; require '/fixture/config.php'; echo json_encode(['state'=>$configReadStatus,'ready'=>strlen(erpSyncToken())>=32,'source'=>erpSyncTokenSource(),'error'=>adminSetupError(),'database'=>$activeConfig['database']]);";
+  for (const [state, body, ready] of [
+    ['missing', null, false], ['invalid', '{broken-json', false], ['valid', '{}', false],
+    ['valid', '\uFEFF' + JSON.stringify({ database: 'fixture_db', erp_sync_token: 'x'.repeat(64) }), true],
+  ]) {
+    const cfg = path.join(configFixture, 'config_db.json');
+    if (body === null) await fs.rm(cfg, { force: true }); else await fs.writeFile(cfg, body);
+    const result = JSON.parse(docker(['run', '--rm', '--network', 'none', '--mount', `type=bind,src=${configFixture},dst=/fixture,readonly`,
+      'buscapreco-php-test', 'php', '-r', inspect]));
+    assert.equal(result.state, state);
+    assert.equal(result.ready, ready);
+    assert.equal(Boolean(result.error), !ready);
+    if (ready) assert.equal(result.database, 'fixture_db');
+  }
+  for (const [value, ready] of [['fixture-environment-token-' + 'y'.repeat(40), true], ['0', false]]) {
+    const result = JSON.parse(docker(['run', '--rm', '--network', 'none', '-e', `ERP_SYNC_TOKEN=${value}`,
+      '--mount', `type=bind,src=${configFixture},dst=/fixture,readonly`, 'buscapreco-php-test', 'php', '-r', inspect]));
+    assert.equal(result.source, 'ERP_SYNC_TOKEN');
+    assert.equal(result.ready, ready);
+    if (!ready) assert.match(result.error, /variável ERP_SYNC_TOKEN/);
+  }
+  await fs.copyFile(path.join(root, 'public/verificar-configuracao.php'), path.join(configFixture, 'verificar-configuracao.php'));
+  const safePage = docker(['run', '--rm', '--network', 'none', '--mount', `type=bind,src=${configFixture},dst=/fixture,readonly`,
+    'buscapreco-php-test', 'php', '/fixture/verificar-configuracao.php']);
+  assert.ok(!safePage.includes('x'.repeat(64)), 'Diagnostic must never render the configured token.');
+  console.log('Verified missing/invalid config, absent token and UTF-8 BOM handling without exposing secret values.');
   docker(['network', 'create', network]);
   const webPort = await port(), pgPort = await port();
   docker(['run', '-d', '--name', db, '--network', network, '-e', 'MARIADB_ALLOW_EMPTY_ROOT_PASSWORD=1', '-e', 'MARIADB_DATABASE=buscapreco', 'mariadb:11.4']);
@@ -57,7 +87,7 @@ try {
     await fs.mkdir(path.dirname(destination), { recursive: true });
     await fs.writeFile(destination, await entry.async('nodebuffer'), { mode: 0o644 });
   }
-  await fs.writeFile(path.join(site, 'config_db.json'), JSON.stringify({ host: db, database: 'buscapreco', user: 'root', password: '',
+  await fs.writeFile(path.join(site, 'config_db.json'), '\uFEFF' + JSON.stringify({ host: db, database: 'buscapreco', user: 'root', password: '',
     erp_sync_token: 'test-only-token-000000000000000000000000', erp_sync_loja: 1 }));
   docker(['cp', `${site}/.`, `${web}:/var/www/html/`]);
   docker(['exec', web, 'chown', '-R', 'www-data:www-data', '/var/www/html']);

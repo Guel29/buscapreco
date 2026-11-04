@@ -30,15 +30,51 @@ $defaultConfig = [
     'password' => ''
 ];
 
+function decodeConfigDocument($content) {
+    // Windows editors can prepend a UTF-8 BOM; it is not part of JSON data.
+    $content = preg_replace('/^\xEF\xBB\xBF/', '', $content);
+    $object = json_decode($content);
+    if (!is_object($object) || json_last_error() !== JSON_ERROR_NONE) return null;
+    return json_decode($content, true);
+}
+
 $savedConfig = [];
+$configReadStatus = 'missing';
 if (file_exists($configFile)) {
     $content = @file_get_contents($configFile);
-    if ($content) {
-        $savedConfig = json_decode($content, true) ?: [];
-    }
+    $decoded = $content === false ? null : decodeConfigDocument($content);
+    $configReadStatus = $content === false ? 'unreadable' : ($decoded === null ? 'invalid' : 'valid');
+    if ($decoded !== null) $savedConfig = $decoded;
 }
 
 $activeConfig = array_merge($defaultConfig, $savedConfig);
+
+function erpSyncToken($configuration = null) {
+    global $activeConfig;
+    $configuration = $configuration ?? $activeConfig;
+    $environment = getenv('ERP_SYNC_TOKEN');
+    if (is_string($environment) && $environment !== '') return $environment;
+    $token = $configuration['erp_sync_token'] ?? '';
+    return is_string($token) ? $token : '';
+}
+
+function erpSyncTokenSource() {
+    $environment = getenv('ERP_SYNC_TOKEN');
+    return is_string($environment) && $environment !== '' ? 'ERP_SYNC_TOKEN' : 'config_db.json';
+}
+
+function adminSetupError() {
+    global $configReadStatus;
+    if ($configReadStatus === 'invalid') return 'O config_db.json desta pasta não é um JSON válido. Corrija o arquivo e salve em UTF-8.';
+    if ($configReadStatus === 'unreadable') return 'O servidor não consegue ler o config_db.json desta pasta. Verifique as permissões na Hostinger.';
+    if (strlen(erpSyncToken()) < 32) {
+        if (erpSyncTokenSource() === 'ERP_SYNC_TOKEN') return 'A variável ERP_SYNC_TOKEN deste servidor tem menos de 32 caracteres. Corrija essa variável ou remova-a para usar o token do arquivo.';
+        return $configReadStatus === 'missing'
+            ? 'O config_db.json não foi encontrado na mesma pasta do auth.php. Configure o arquivo nessa pasta da hospedagem.'
+            : 'O campo erp_sync_token do config_db.json desta pasta está ausente ou tem menos de 32 caracteres.';
+    }
+    return null;
+}
 
 define('DB_HOST', $activeConfig['host'] ?? 'localhost');
 define('DB_PORT', (int)($activeConfig['port'] ?? 3306));

@@ -3,7 +3,7 @@
 require_once __DIR__ . '/config.php';
 header('Cache-Control: no-store');
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') sendJson(['success' => false, 'error' => 'Use POST.'], 405);
-$token = getenv('ERP_SYNC_TOKEN') ?: ($activeConfig['erp_sync_token'] ?? '');
+$token = erpSyncToken();
 if (strlen($token) < 32) sendJson(['success' => false, 'error' => 'Integração não configurada.'], 503);
 if (!hash_equals($token, $_SERVER['HTTP_X_ERP_TOKEN'] ?? '')) sendJson(['success' => false, 'error' => 'Não autorizado.'], 401);
 $input = json_decode(file_get_contents('php://input'), true);

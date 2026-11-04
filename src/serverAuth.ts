@@ -22,7 +22,11 @@ export function installAdminAuth(app: Express) {
   app.all('/api/auth', (req: Request, res: Response) => {
     res.setHeader('Cache-Control', 'no-store');
     const saved = load();
-    if (req.method === 'GET') return res.json({ configured: Boolean(saved), authenticated: authenticated(req) });
+    if (req.method === 'GET') return res.json({ configured: Boolean(saved), authenticated: authenticated(req),
+      backend: 'node', config_file: '.env', setup_token_source: 'ERP_SYNC_TOKEN',
+      token_configured: (process.env.ERP_SYNC_TOKEN || '').length >= 32,
+      setup_error: !saved && (process.env.ERP_SYNC_TOKEN || '').length < 32
+        ? 'Configure ERP_SYNC_TOKEN no ambiente deste servidor Node. Alterar o config_db.json da Hostinger não configura este servidor.' : null });
     if (req.method !== 'POST') return res.status(405).json({ error: 'Use POST.' });
     if (!originAllowed(req)) return res.status(403).json({ error: 'Origem não autorizada.' });
     const { operation, password, setup_token } = req.body;
@@ -33,6 +37,9 @@ export function installAdminAuth(app: Express) {
       return res.json({ success: true });
     }
     if (typeof password !== 'string' || password.length > 128) return res.status(400).json({ error: 'Senha inválida.' });
+    if (operation === 'setup' && !saved && (process.env.ERP_SYNC_TOKEN || '').length < 32) {
+      return res.status(503).json({ error: 'ERP_SYNC_TOKEN não está configurado no ambiente deste servidor Node.' });
+    }
     const key = req.ip || 'local';
     let rate = attempts.get(key);
     if (!rate || Date.now() - rate.start > 900000) { rate = { start: Date.now(), count: 0 }; attempts.set(key, rate); }

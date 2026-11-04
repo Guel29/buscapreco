@@ -13,7 +13,8 @@
     "test": "node --import tsx --test tests/*.test.mjs",
     "test:hostinger": "node scripts/validate-hostinger.mjs",
     "build:windows": "node scripts/build-windows.mjs",
-    "build:diagnostic": "node scripts/build-vr-diagnostic.mjs"
+    "build:diagnostic": "node scripts/build-vr-diagnostic.mjs",
+    "build:config-diagnostic": "node scripts/build-config-diagnostic.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

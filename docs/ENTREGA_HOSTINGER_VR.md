@@ -42,6 +42,15 @@ se o token/senha ainda não foram configurados; isso não impede consultas públ
 
 ### Esqueci a senha do painel
 
+Se aparecer token inválido repetidamente, `npm run build:config-diagnostic` gera
+`public/diagnostico_configuracao_hostinger.zip`. Ele contém somente uma página
+nova, `verificar-configuracao.php`, sem substituir a aplicação ou o arquivo de
+credenciais. Extraia na mesma pasta do aplicativo e abra essa página pelo domínio.
+A tabela mostra existência/validade do JSON, presença do token e BOM UTF-8, sem
+exibir valores privados. Remova a página após o diagnóstico. A configuração PHP
+aceita BOM UTF-8 e usa a mesma precedência de token no primeiro acesso e no ERP:
+variável `ERP_SYNC_TOKEN`, quando presente, seguida do campo `erp_sync_token`.
+
 Pelo Gerenciador de Arquivos da Hostinger, edite somente o valor de
 `admin_password_hash` para `""` no `config_db.json`, preservando o MySQL, token e
 demais campos. Atualize o site com Ctrl+F5 e abra o painel. No primeiro acesso,
