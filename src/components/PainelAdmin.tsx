@@ -34,6 +34,7 @@ interface PainelAdminProps {
   currentStoreId: number;
   customBackground?: string | null;
   onUpdateBackground?: (bg: string | null) => Promise<void>;
+  onSaveDefaultBackground?: () => Promise<void>;
   onSelectStore: (id: number) => void;
   onSaveModel: (model: LabelModel) => void;
   onSelectModel: (id: string) => void;
@@ -54,6 +55,7 @@ export const PainelAdmin: React.FC<PainelAdminProps> = ({
   currentStoreId,
   customBackground,
   onUpdateBackground,
+  onSaveDefaultBackground,
   onSelectStore,
   onSaveModel,
   onSelectModel,
@@ -508,6 +510,15 @@ export const PainelAdmin: React.FC<PainelAdminProps> = ({
                 </div>
 
                 <p role="status" className="text-sm text-neutral-300">{backgroundBusy ? 'Salvando fundo...' : backgroundMessage}</p>
+                <p className="text-xs text-neutral-400">Carregue a imagem e salve como padrão do site para usá-la na web e nos terminais sem fundo personalizado. </p>
+                <button type="button" disabled={backgroundBusy || !customBackground?.startsWith('data:image/')} onClick={async () => {
+                  if (!onSaveDefaultBackground) return;
+                  setBackgroundBusy(true);
+                  setBackgroundMessage('');
+                  try { await onSaveDefaultBackground(); setBackgroundMessage('Fundo padrão salvo no site. Outros terminais recebem a imagem ao abrir ou atualizar a página.'); }
+                  catch (error) { setBackgroundMessage(error instanceof Error ? error.message : 'Não foi possível salvar o fundo padrão.'); }
+                  finally { setBackgroundBusy(false); }
+                }} className="px-4 py-3 rounded-xl bg-emerald-600 text-white text-sm font-bold disabled:opacity-50">Salvar como fundo padrão do site</button>
                 {/* Ações de Upload e Restauração */}
                 <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
                   <label className="flex-1 w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition shadow">

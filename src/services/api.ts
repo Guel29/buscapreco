@@ -242,39 +242,20 @@ export async function sendDirectPrint(
     const localAgentRes = await fetch('http://localhost:9100/print-raw', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      signal: AbortSignal.timeout(10000),
       body: JSON.stringify({
         modelName: model.nome,
         printerName: printer.nome,
         rawCommands,
       }),
     });
-    if (localAgentRes.ok) {
-      return { success: true, message: `Etiqueta impressa com sucesso via Agente Local Argox (Porta 9100)!` };
+    const result = await localAgentRes.json();
+    if (localAgentRes.ok && result.success === true) {
+      return { success: true, message: 'Trabalho aceito pelo agente local de impressão. Confira a saída na Argox.' };
     }
   } catch (e) {}
 
-  // 2. Fallback to Cloud/Server print router
-  try {
-    const res = await fetch(`${BASE_URL}/api/print`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        id_terminal: terminalId,
-        id_impressora: printer.id,
-        id_modelo: model.id,
-        produtos: products,
-        comandos_raw: rawCommands,
-      }),
-    });
-
-    if (res.ok) {
-      return { success: true, message: 'Trabalho de impressão enviado com sucesso à impressora!' };
-    }
-    const errData = await res.json();
-    return { success: false, message: errData.error || 'Falha ao processar impressão.' };
-  } catch (e: any) {
-    return { success: false, message: 'Impressora offline ou erro de comunicação de rede.' };
-  }
+  return { success: false, message: 'Agente local de impressão indisponível. Para Argox USB, abra o site no computador ligado à impressora e use “Imprimir na Argox pelo Windows”. A Hostinger não acessa o USB de outro computador.' };
 }
 
 // ERP Connection APIs

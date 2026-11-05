@@ -1628,6 +1628,31 @@ app.get('/api/integrador/status', (req: Request, res: Response) => {
   });
 });
 
+// Shared default artwork; the upload route is protected by installAdminAuth.
+app.use('/terminal-media', express.static(path.join(process.cwd(), '.terminal-media')));
+app.all('/api/terminal/background', (req: Request, res: Response) => {
+  res.setHeader('Cache-Control', 'no-store');
+  const folder = path.join(process.cwd(), '.terminal-media');
+  const manifest = path.join(process.cwd(), '.terminal-background.json');
+  try {
+    if (req.method === 'POST') {
+      const image = req.body.image;
+      const match = typeof image === 'string' && image.length < 8500000 ? /^data:image\/(png|jpeg|webp);base64,([A-Za-z0-9+/=\r\n]+)$/.exec(image) : null;
+      if (!match) return res.status(400).json({ error: 'Selecione PNG, JPG ou WebP de até 6 MB.' });
+      const bytes = Buffer.from(match[2], 'base64');
+      const valid = match[1] === 'png' ? bytes.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])) : match[1] === 'jpeg' ? bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255 : bytes.toString('ascii',0,4) === 'RIFF' && bytes.toString('ascii',8,12) === 'WEBP';
+      if (!valid || bytes.length > 6 * 1024 * 1024) return res.status(400).json({ error: 'Imagem inválida ou muito grande.' });
+      fs.mkdirSync(folder, { recursive: true });
+      const file = `default-${crypto.createHash('sha256').update(bytes).digest('hex')}.${match[1]}`;
+      fs.writeFileSync(path.join(folder, file), bytes);
+      fs.writeFileSync(manifest, JSON.stringify({ file }), { mode: 0o600 });
+    } else if (req.method !== 'GET') return res.status(405).json({ error: 'Método não permitido.' });
+    const file = fs.existsSync(manifest) ? JSON.parse(fs.readFileSync(manifest, 'utf8')).file : null;
+    const valid = typeof file === 'string' && /^default-[a-f0-9]{64}\.(png|jpeg|webp)$/.test(file) && fs.existsSync(path.join(folder,file));
+    return res.json({ success: true, url: valid ? `terminal-media/${file}` : null });
+  } catch { return res.status(503).json({ error: 'Não foi possível salvar o fundo padrão.' }); }
+});
+
 // Admin-only schedule. The Windows integrator reads the corresponding PHP endpoint.
 app.all('/api/erp/schedule', (req: Request, res: Response) => {
   res.setHeader('Cache-Control', 'no-store');

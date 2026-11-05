@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Product, LabelModel, PrinterConfig, SystemStatus } from '../types';
 import { searchProduct, sendDirectPrint, fetchSystemStatus, triggerInstantLoad } from '../services/api';
 import JsBarcode from 'jsbarcode';
+import { printBrowserLabel } from '../services/browserLabelPrint';
 import { formatPrice } from '../services/argoxPrinter';
 import { kioskShortcut } from '../utils/kioskShortcuts';
 import { SupermarketKioskBackdrop } from './SmartinhoHero';
@@ -225,9 +226,7 @@ export const ConsultaPreco: React.FC<ConsultaPrecoProps> = ({
       if (result.success) {
         setPrintStatus({
           status: 'success',
-          message: activeModel.produtos_por_etiqueta === 2
-            ? 'Etiqueta Dupla impressa com sucesso!'
-            : 'Etiqueta impressa com sucesso!',
+          message: result.message,
         });
 
         // Reset slots immediately for next read
@@ -287,7 +286,7 @@ export const ConsultaPreco: React.FC<ConsultaPrecoProps> = ({
       if (res.success) {
         setJobFeedback({
           success: true,
-          message: `${printQuantity} etiqueta(s) enviada(s) para ${selectedPrinterForJob?.nome || activePrinter.nome}!`,
+          message: res.message,
         });
         setTimeout(() => {
           setShowPrintModal(false);
@@ -309,8 +308,15 @@ export const ConsultaPreco: React.FC<ConsultaPrecoProps> = ({
     }
   };
 
-  const handlePrintBrowser = () => {
-    window.print();
+  const handlePrintBrowser = async () => {
+    const label = document.querySelector<HTMLElement>('.gondola-print-label');
+    if (!label) { setJobFeedback({ success: false, message: 'Consulte um produto antes de imprimir.' }); return; }
+    try {
+      await printBrowserLabel(label);
+      setJobFeedback({ success: true, message: 'Documento da etiqueta aberto para impressão. Selecione a Argox OS-214 Plus no Windows.' });
+    } catch {
+      setJobFeedback({ success: false, message: 'Não foi possível abrir a etiqueta. Confira as permissões de impressão do navegador.' });
+    }
   };
 
   // Perform search query
@@ -344,7 +350,11 @@ export const ConsultaPreco: React.FC<ConsultaPrecoProps> = ({
         setNotFound(false);
 
         // Check if we are in MODO ETIQUETA
-        if (modoEtiqueta) {
+        if (modoEtiqueta && /^USB/i.test(activePrinter.porta || '')) {
+          // A USB printer uses the driver on this computer. Open a real print
+          // dialog instead of sending to a nonexistent cloud USB spooler.
+          handleOpenPrintModal();
+        } else if (modoEtiqueta) {
           if (activeModel.produtos_por_etiqueta === 1) {
             // Model 1: BIP -> IMPRIME IMEDIATAMENTE (sem confirmação, sem quantidade)
             await executeEtiquetaPrint(product);
@@ -375,7 +385,7 @@ export const ConsultaPreco: React.FC<ConsultaPrecoProps> = ({
         setManualInput('');
       }
     },
-    [currentStoreId, modoEtiqueta, activeModel, activePrinter, etiquetaSlot1, triggerAutoReturn]
+    [currentStoreId, modoEtiqueta, activeModel, activePrinter, etiquetaSlot1, triggerAutoReturn, handleOpenPrintModal]
   );
 
   // Global Keydown Listener for USB Barcode Reader & F8 Shortcut
@@ -1031,7 +1041,7 @@ export const ConsultaPreco: React.FC<ConsultaPrecoProps> = ({
               </div>
             )}
 
-            <p className="text-xs text-neutral-400">Argox USB: abra este site no computador conectado à impressora e use “Imprimir pelo Windows”. Selecione a Argox, papel 100 × 30 mm, escala 100%, sem margens e sem cabeçalhos. Ajuste as cópias no diálogo do Windows.</p>
+            <p className="text-xs text-neutral-400">Argox USB: abra este site no computador conectado à impressora e use “Imprimir pelo Windows”. Selecione a Argox, papel 100 × 30 mm, escala 100%, sem margens e sem cabeçalhos. Ajuste as cópias no diálogo do Windows. Se estiver usando ribbon, selecione transferência térmica nas preferências do driver Argox.</p>
             {/* Ações */}
             <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-3 border-t border-neutral-800">
               <button
@@ -1041,17 +1051,17 @@ export const ConsultaPreco: React.FC<ConsultaPrecoProps> = ({
                 title="Imprime a etiqueta usando o diálogo de impressão do navegador ou gera PDF"
               >
                 <FileText className="w-4 h-4 text-cyan-400" />
-                <span>Imprimir pelo Windows / Argox USB</span>
+                <span>Pré-visualizar / salvar PDF</span>
               </button>
 
               <button
                 type="button"
-                onClick={handlePrintThermal}
+                onClick={() => /^USB/i.test((selectedPrinterForJob || activePrinter).porta || '') ? handlePrintBrowser() : handlePrintThermal()}
                 disabled={isSendingJob}
                 className="w-full sm:w-auto px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition cursor-pointer shadow shadow-emerald-950/50 disabled:opacity-50"
               >
                 <Printer className={`w-4 h-4 ${isSendingJob ? 'animate-spin' : ''}`} />
-                <span>{isSendingJob ? 'Enviando...' : `Imprimir ${printQuantity}x na Térmica`}</span>
+                <span>{isSendingJob ? 'Enviando...' : /^USB/i.test((selectedPrinterForJob || activePrinter).porta || '') ? 'Imprimir na Argox OS-214 Plus pelo Windows' : `Impressão direta: ${printQuantity}x`}</span>
               </button>
             </div>
           </div>

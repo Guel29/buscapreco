@@ -13,7 +13,7 @@ test('packages only the Hostinger app, excluding old ZIPs, Windows tools and loc
     await mkdir(path.join(root, 'public'));
     await writeFile(path.join(root, 'dist/index.html'), '<script src="/assets/app.js"></script>');
     await writeFile(path.join(root, 'dist/assets/app.js'), 'console.log("app");');
-    const php = ['api.php', 'config.php', 'config_db.example.txt', 'index.php', 'install.php', 'auth.php', 'auth-session.php', 'atualizar_app.php', 'atualizar_produtos.php', 'erp-sync.php', 'erp-schedule.php', '.htaccess', 'schema_buscapreco.sql'];
+    const php = ['api.php', 'config.php', 'config_db.example.txt', 'index.php', 'install.php', 'auth.php', 'auth-session.php', 'atualizar_app.php', 'atualizar_produtos.php', 'erp-sync.php', 'erp-schedule.php', 'terminal-background.php', '.htaccess', 'schema_buscapreco.sql'];
     for (const name of php) await writeFile(path.join(root, 'public', name), 'fixture');
     await mkdir(path.join(root, 'public/erp-agent'));
     for (const name of ['integrador.mjs', 'runtime.mjs', 'configure-windows.mjs', 'config.example.json', 'LEIA-ME.txt']) {

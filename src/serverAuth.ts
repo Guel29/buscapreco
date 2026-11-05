@@ -66,7 +66,7 @@ export function installAdminAuth(app: Express) {
     res.cookie('buscapreco_admin', token, { httpOnly: true, sameSite: 'strict', secure: req.secure, maxAge: 3600000 });
     return res.json({ success: true, authenticated: true });
   });
-  const publicReads = new Set(['/status', '/products/search', '/products', '/stores', '/printers', '/sync/verify', '/sync/test-product', '/mysql/schema']);
+  const publicReads = new Set(['/status', '/products/search', '/products', '/stores', '/printers', '/sync/verify', '/sync/test-product', '/mysql/schema', '/terminal/background']);
   app.use('/api', (req: Request, res: Response, next: NextFunction) => {
     if (['GET', 'HEAD'].includes(req.method) && publicReads.has(req.path)) return next();
     if (!authenticated(req)) return res.status(401).json({ error: 'Autenticação administrativa necessária.' });

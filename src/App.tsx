@@ -72,6 +72,21 @@ export function App() {
     typeof navigator !== 'undefined' ? !navigator.onLine : false
   );
 
+  const [siteBackground, setSiteBackground] = useState<string | null>(null);
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      try {
+        const response = await fetch('/api/terminal/background', { cache: 'no-store' });
+        const data = await response.json();
+        if (active && response.ok && data.success === true && (data.url === null || /^terminal-media\/default-[a-f0-9]{64}\.(png|jpeg|webp)$/.test(data.url))) setSiteBackground(data.url);
+      } catch { /* Keep the last background when offline. */ }
+    };
+    void load();
+    const timer = setInterval(load, 60000);
+    return () => { active = false; clearInterval(timer); };
+  }, []);
+
   // Images use IndexedDB, avoiding the small localStorage quota used by settings.
   const [customBackground, setCustomBackground] = useState<string | null>(null);
   const [backgroundReady, setBackgroundReady] = useState(false);
@@ -96,6 +111,16 @@ export function App() {
     await localDB.saveBackground(bg);
     try { localStorage.removeItem('kiosk_custom_background'); } catch {}
     setCustomBackground(bg);
+  };
+
+  const handleSaveDefaultBackground = async () => {
+    if (!customBackground?.startsWith('data:image/')) throw new Error('Carregue uma imagem PNG, JPG ou WebP antes de salvar como padrão.');
+    const response = await fetch('/api/terminal/background', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ image: customBackground }) });
+    const data = await response.json();
+    if (!response.ok || data.success !== true) throw new Error(data.error || 'Não foi possível salvar o fundo padrão.');
+    setSiteBackground(data.url);
+    setCustomBackground(null);
+    await localDB.saveBackground(null).catch(() => {});
   };
 
   // Initial load
@@ -303,7 +328,7 @@ export function App() {
         onOpenAdmin={() => setIsAdminOpen(true)}
         isAdminOpen={isAdminOpen}
         isOffline={isOffline}
-        customBackground={customBackground}
+        customBackground={customBackground || siteBackground}
       />
 
       {/* Admin Panel (Secured with PIN) */}
@@ -315,8 +340,9 @@ export function App() {
           printers={printers}
           activePrinter={activePrinter}
           currentStoreId={currentStoreId}
-          customBackground={customBackground}
+          customBackground={customBackground || siteBackground}
           onUpdateBackground={handleUpdateBackground}
+          onSaveDefaultBackground={handleSaveDefaultBackground}
           onSelectStore={handleSelectStore}
           onSaveModel={handleSaveModel}
           onSelectModel={handleSelectModel}
