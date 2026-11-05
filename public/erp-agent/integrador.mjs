@@ -89,6 +89,26 @@ export async function sendSnapshot(config, products, request = fetch) {
   return result;
 }
 
+// The token allows only reading this store's schedule; editing requires admin login.
+export async function readRemoteInterval(config, request = fetch) {
+  const endpoint = new URL('erp-schedule.php', config.url.endsWith('/') ? config.url : config.url + '/');
+  endpoint.searchParams.set('id_loja', String(config.id_loja));
+  const response = await request(endpoint, { headers: { 'X-ERP-Token': config.token },
+    cache: 'no-store', redirect: 'error', signal: AbortSignal.timeout(10000) });
+  if (!response.ok) throw new Error('Agendamento remoto indisponível.');
+  const data = await response.json();
+  if (data.success !== true || data.id_loja !== config.id_loja) throw new Error('Agendamento de loja incompatível.');
+  if (data.configured === false) return null;
+  if (data.configured !== true || !Number.isInteger(data.intervalo_minutos) || data.intervalo_minutos < 1 || data.intervalo_minutos > 1440) {
+    throw new Error('Intervalo remoto inválido.');
+  }
+  return data.intervalo_minutos;
+}
+
+export function remainingSyncDelay(completedAt, intervalMinutes, now = Date.now()) {
+  return Math.max(0, completedAt + intervalMinutes * 60000 - now);
+}
+
 async function main() {
   const directory = dataDirectory(import.meta.url);
   if (process.argv.includes('--stop')) { await stopAgent(directory); return; }
@@ -103,6 +123,16 @@ async function main() {
     validateConfig(config);
     const { default: pg } = await import('pg');
     await log('Integrador iniciado; aguardando confirmação da primeira carga.', { state: 'starting' });
+    let interval = config.intervalo_minutos;
+    const refreshInterval = async () => {
+      try {
+        const remote = await readRemoteInterval(config);
+        const next = remote ?? config.intervalo_minutos;
+        if (next !== interval) await log(`Intervalo de sincronização atualizado: ${next} minuto(s).`);
+        interval = next;
+      } catch { /* Preserve the last valid interval if the cloud is unavailable. */ }
+    };
+    await refreshInterval();
     do {
       let success = false;
       try {
@@ -118,7 +148,18 @@ async function main() {
       if (process.argv.includes('--once')) break;
       // Windows may log in before the network is ready. Retry failures after a
       // minute, without overlapping queries or multiple instances.
-      await new Promise((resolve) => setTimeout(resolve, (success ? config.intervalo_minutos : 1) * 60000));
+      const completedAt = Date.now();
+      if (!success) {
+        await new Promise((resolve) => setTimeout(resolve, 60000));
+        await refreshInterval();
+      } else {
+        // Poll while idle so shortening/lengthening the interval takes effect
+        // without a service restart. Count the interval from the completed load.
+        while (remainingSyncDelay(completedAt, interval) > 0) {
+          await new Promise((resolve) => setTimeout(resolve, Math.min(60000, remainingSyncDelay(completedAt, interval))));
+          await refreshInterval();
+        }
+      }
     } while (true);
   } catch {
     await log('Configuração inválida ou dependência ausente. Confira o config.json.', { state: 'configuration-error' });

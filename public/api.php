@@ -18,6 +18,7 @@ $action = isset($_GET['action']) ? trim($_GET['action']) : 'status';
 // Normaliza ação para remover leading/trailing slashes
 $action = trim($action, '/');
 $method = $_SERVER['REQUEST_METHOD'];
+if ($action === 'erp/schedule') { require __DIR__ . '/erp-schedule.php'; exit; }
 if (!in_array($method, ['GET', 'HEAD'], true) ||
     !in_array($action, ['status', 'search', 'products', 'produtos', 'stores', 'lojas', 'printers', 'sync/verify', 'sync/test-product', 'mysql/schema'], true)) {
     requireAdminSession();

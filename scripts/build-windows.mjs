@@ -26,7 +26,7 @@ for (const file of ['integrador.mjs', 'runtime.mjs', 'configure-windows.mjs', 'c
 for (const file of ['config.json', 'config.backup.json', 'config.new.json', '.agent-control.json', '.env', 'logs']) {
   await fs.rm(path.join(app, file), { recursive: true, force: true });
 }
-await fs.writeFile(path.join(app, 'build-information.json'), JSON.stringify({ application: 'Busca Preço Integrador VR', version: '1.0.1', node: release }, null, 2));
+await fs.writeFile(path.join(app, 'build-information.json'), JSON.stringify({ application: 'Busca Preço Integrador VR', version: '1.0.2', node: release }, null, 2));
 const build = ['build', '-t', 'buscapreco-nsis', path.join(root, 'installer/windows')];
 for (const certificate of [process.env.CODEX_PROXY_CERT, '/etc/ssl/certs/ca-certificates.crt'].filter(Boolean)) {
   try { await fs.access(certificate); build.splice(1, 0, '--secret', `id=proxy_ca,src=${certificate}`); break; } catch {}
@@ -53,6 +53,6 @@ const sha256 = createHash('sha256').update(binary).digest('hex');
 await fs.writeFile(path.join(root, 'public', filename + '.sha256'), `${sha256}  ${filename}\n`);
 console.log(`Windows installer: ${binary.length} bytes; SHA-256 ${sha256}`);
 
-const versioned = 'BuscaPrecoIntegrador-Setup-1.0.1.exe';
+const versioned = 'BuscaPrecoIntegrador-Setup-1.0.2.exe';
 await fs.copyFile(path.join(root, 'public', filename), path.join(root, 'public', versioned));
 await fs.writeFile(path.join(root, 'public', versioned + '.sha256'), `${sha256}  ${versioned}\n`);

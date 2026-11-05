@@ -4,7 +4,7 @@ import JSZip from 'jszip';
 
 const backendFiles = [
   'api.php', 'config.php', 'config_db.example.txt', 'index.php', 'install.php', 'auth.php', 'auth-session.php',
-  'atualizar_app.php', 'atualizar_produtos.php', 'erp-sync.php', '.htaccess', 'schema_buscapreco.sql',
+  'atualizar_app.php', 'atualizar_produtos.php', 'erp-sync.php', 'erp-schedule.php', '.htaccess', 'schema_buscapreco.sql',
 ];
 
 export async function createHostingerPackage(root) {

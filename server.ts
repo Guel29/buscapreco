@@ -1628,6 +1628,25 @@ app.get('/api/integrador/status', (req: Request, res: Response) => {
   });
 });
 
+// Admin-only schedule. The Windows integrator reads the corresponding PHP endpoint.
+app.all('/api/erp/schedule', (req: Request, res: Response) => {
+  res.setHeader('Cache-Control', 'no-store');
+  const file = path.join(process.cwd(), '.erp-schedule.json');
+  const store = Number(erpConfig.id_loja || 1);
+  try {
+    if (req.method === 'POST') {
+      const minutes = req.body.intervalo_minutos;
+      if (req.body.id_loja !== store || !Number.isInteger(minutes) || minutes < 1 || minutes > 1440) {
+        return res.status(400).json({ error: 'Informe a loja autorizada e um intervalo inteiro de 1 a 1440 minutos.' });
+      }
+      fs.writeFileSync(file, JSON.stringify({ id_loja: store, intervalo_minutos: minutes }), { mode: 0o600 });
+    } else if (req.method !== 'GET') return res.status(405).json({ error: 'Método não permitido.' });
+    const saved = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : null;
+    const configured = saved?.id_loja === store && Number.isInteger(saved?.intervalo_minutos) && saved.intervalo_minutos >= 1 && saved.intervalo_minutos <= 1440;
+    return res.json({ success: true, id_loja: store, configured, intervalo_minutos: configured ? saved.intervalo_minutos : null });
+  } catch { return res.status(503).json({ error: 'Não foi possível acessar o intervalo salvo.' }); }
+});
+
 // ERP Connection Test (Strictly Read Only with Latency Ping)
 app.post('/api/erp/test-connection', async (req: Request, res: Response) => {
   const { host, port, database, user, password, ssl, id_situacao, id_situacaocadastro, id_loja } = req.body;

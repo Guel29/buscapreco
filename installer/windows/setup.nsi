@@ -11,10 +11,10 @@ OutFile "${OUTPUT}/BuscaPrecoIntegrador-Setup.exe"
 InstallDir "$PROGRAMFILES64\BuscaPrecoIntegrador"
 RequestExecutionLevel admin
 SetCompressor zlib
-VIProductVersion "1.0.1.0"
+VIProductVersion "1.0.2.0"
 VIAddVersionKey "ProductName" "Busca Preço - Integrador VR"
 VIAddVersionKey "FileDescription" "Instalador do integrador VR/PostgreSQL"
-VIAddVersionKey "FileVersion" "1.0.1"
+VIAddVersionKey "FileVersion" "1.0.2"
 
 Var DataDir
 Var Dialog
@@ -306,7 +306,7 @@ Section "Instalar integrador"
   CreateShortcut "$SMPROGRAMS\Busca Preço Integrador VR\Desinstalar.lnk" "$INSTDIR\Desinstalar.exe"
   WriteUninstaller "$INSTDIR\Desinstalar.exe"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\BuscaPrecoIntegrador" "DisplayName" "Busca Preço - Integrador VR"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\BuscaPrecoIntegrador" "DisplayVersion" "1.0.1"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\BuscaPrecoIntegrador" "DisplayVersion" "1.0.2"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\BuscaPrecoIntegrador" "UninstallString" '$\"$INSTDIR\Desinstalar.exe$\"'
 SectionEnd
 

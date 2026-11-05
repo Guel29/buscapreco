@@ -44,6 +44,24 @@ test('VR PostgreSQL → staged PHP/MySQL sync → price lookup', { skip: !base }
   }
   assert.equal((await auth({ operation: 'login', password: 'wrong' })).status, 401);
   assert.equal((await auth({ operation: 'login', password: 'test-admin-password' })).status, 200);
+  const scheduleUrl = base + '/erp-schedule.php?id_loja=1';
+  assert.equal((await fetch(scheduleUrl)).status, 401);
+  assert.equal((await fetch(scheduleUrl, { headers: { 'X-ERP-Token': token } })).status, 200);
+  const scheduleHeaders = { Cookie: cookie, 'Content-Type': 'application/json' };
+  const updateSchedule = (value, headers = scheduleHeaders) => fetch(base + '/api/erp/schedule', { method: 'POST', headers, body: JSON.stringify(value) });
+  assert.equal((await updateSchedule({ id_loja: 1, intervalo_minutos: 5 }, { 'Content-Type': 'application/json', 'X-ERP-Token': token })).status, 401, 'ERP token must not edit the schedule.');
+  for (const value of [0, 1441, 1.5, '5']) {
+    assert.equal((await updateSchedule({ id_loja: 1, intervalo_minutos: value })).status, 400);
+  }
+  assert.equal((await updateSchedule({ id_loja: 2, intervalo_minutos: 5 })).status, 400);
+  assert.equal((await updateSchedule({ id_loja: 1, intervalo_minutos: 5 }, { ...scheduleHeaders, Origin: 'https://foreign.example' })).status, 403);
+  assert.equal((await updateSchedule({ id_loja: 1, intervalo_minutos: 5 })).status, 200);
+  const remoteSchedule = await (await fetch(scheduleUrl, { headers: { 'X-ERP-Token': token } })).json();
+  assert.deepEqual(remoteSchedule, { success: true, id_loja: 1, configured: true, intervalo_minutos: 5 });
+  assert.equal((await fetch(base + '/erp-schedule.php?id_loja=2', { headers: { 'X-ERP-Token': token } })).status, 403);
+  assert.equal((await fetch(base + '/.erp-schedule.json')).status, 403);
+  assert.equal((await (await fetch(base + '/api/erp/schedule', { headers: { Cookie: cookie } })).json()).intervalo_minutos, 5);
+  assert.equal((await auth({ operation: 'login', password: 'test-admin-password' })).status, 200, 'Changing the schedule must preserve the admin credentials.');
   const installed = await fetch(base + '/install.php?format=json', { headers: { Cookie: cookie } });
   assert.equal(installed.status, 200, await installed.clone().text());
   assert.equal((await installed.json()).success, true);

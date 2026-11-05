@@ -85,7 +85,7 @@ export async function fetchSyncVerification(idLoja: number = 1): Promise<SyncVer
     if (phpRes.ok) {
       const d = await phpRes.json();
       return {
-        success: true,
+        success: Boolean(d.banco_online),
         is_synced: (d.total_produtos || 0) > 0,
         status: (d.total_produtos || 0) > 0 ? 'SINCRONIZADO' : 'AGUARDANDO',
         status_mensagem: d.banco_online ? 'MySQL Hostinger conectado; confira a última carga do VR.' : 'Banco MySQL indisponível.',
@@ -93,7 +93,7 @@ export async function fetchSyncVerification(idLoja: number = 1): Promise<SyncVer
         ultima_sincronizacao_formatada: formatDateTimeBR(d.ultima_sincronizacao),
         tempo_relativo: d.agente_online ? 'Carga recente' : 'Sem carga recente',
         proxima_sincronizacao: null,
-        proxima_sincronizacao_formatada: 'A cada 10 min',
+        proxima_sincronizacao_formatada: 'Conforme intervalo do integrador',
         id_loja: d.loja_atual || idLoja,
         nome_loja: d.nome_loja || 'Supermercado Modelo',
         total_produtos_nuvem: d.total_produtos || 0,

@@ -9,6 +9,7 @@ import {
   wipeAllProducts,
   upsertSingleProduct,
 } from '../services/api';
+import { SynchronizationSchedule } from './SynchronizationSchedule';
 import { formatDateTimeBR } from '../utils/date';
 import {
   Cloud,
@@ -513,6 +514,33 @@ export const VerificadorSincronizacao: React.FC<VerificadorSincronizacaoProps> =
     }
   };
 
+  if (isModal) {
+    return (
+      <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+        <section role="dialog" aria-modal="true" aria-labelledby="terminal-sync-title" className="bg-neutral-900 text-neutral-100 border border-neutral-800 rounded-3xl p-6 max-w-3xl w-full">
+          <div className="flex justify-between items-center mb-4">
+            <h2 id="terminal-sync-title" className="font-bold">Última carga de produtos</h2>
+            <button type="button" onClick={onClose} aria-label="Fechar status" className="p-2 rounded-lg hover:bg-neutral-800"><X className="w-5 h-5" /></button>
+          </div>
+          {loading && !data ? <p role="status">Consultando status...</p> : !data ? <p role="status">Não foi possível consultar o status.</p> : <div className="rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-emerald-950/50 to-neutral-900 p-5 grid gap-6 md:grid-cols-2">
+            <div className="space-y-3">
+              <p className="text-xs font-bold text-emerald-300">{data.success ? 'BANCO ATIVO & CONECTADO' : 'CONEXÃO INDISPONÍVEL'} <span className="text-neutral-400 ml-2">Loja {currentStoreId}</span></p>
+              <h3 className="text-xs text-neutral-400 uppercase">Data e hora da última sincronização</h3>
+              <p className="text-3xl font-bold text-emerald-300">{formatDateTimeBR(data.ultima_sincronizacao)}</p>
+              <span className="inline-block text-xs px-2 py-1 bg-neutral-800 rounded-lg">{data.agente?.online ? 'Carga recente' : 'Sem carga recente'}</span>
+              <p className="text-xs text-neutral-400">{data.success ? 'MySQL Hostinger conectado; confira a última carga do VR.' : 'Não foi possível confirmar a conexão.'}</p>
+            </div>
+            <dl className="grid grid-cols-2 gap-3 text-center">
+              <div className="rounded-xl border border-emerald-500/30 bg-neutral-950 p-3"><dt className="text-xs text-neutral-400">Produtos ativos (nuvem)</dt><dd className="text-3xl font-bold text-emerald-400">{Number(data.total_produtos_ativos || 0).toLocaleString('pt-BR')}</dd><p className="text-xs text-emerald-400">Visíveis no Busca Preço</p></div>
+              <div className="rounded-xl border border-neutral-800 bg-neutral-950 p-3"><dt className="text-xs text-neutral-400">Produtos inativos</dt><dd className="text-3xl font-bold text-neutral-400">{Number(data.total_produtos_inativos || 0).toLocaleString('pt-BR')}</dd><p className="text-xs text-neutral-500">Bloqueados no Kiosk</p></div>
+              <div className="col-span-2 rounded-xl border border-neutral-800 bg-neutral-950 p-3"><dt className="text-xs text-neutral-400">Total no MySQL</dt><dd className="text-xl font-bold">{Number(data.total_produtos_nuvem || 0).toLocaleString('pt-BR')} itens</dd></div>
+            </dl>
+          </div>}
+        </section>
+      </div>
+    );
+  }
+
   const content = (
     <div className="space-y-6 text-neutral-100 font-sans">
       {/* Top Header / Title */}
@@ -703,11 +731,12 @@ export const VerificadorSincronizacao: React.FC<VerificadorSincronizacaoProps> =
 
               <div className="text-xs text-neutral-400 font-mono flex items-center gap-2">
                 <Clock className="w-4 h-4 text-amber-400" />
-                <span>Próximo ciclo automático: a cada 10 min</span>
+                <span>Intervalo automático: configure abaixo no painel</span>
               </div>
             </div>
           </div>
 
+          {!isModal && <SynchronizationSchedule storeId={currentStoreId} />}
           {/* Quick Import Drawer / Card */}
           {importOpen && (
             <div className="bg-neutral-900 border border-cyan-500/40 rounded-3xl p-6 space-y-4 animate-fadeIn">
@@ -1110,16 +1139,6 @@ export const VerificadorSincronizacao: React.FC<VerificadorSincronizacaoProps> =
       )}
     </div>
   );
-
-  if (isModal) {
-    return (
-      <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
-        <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-6 md:p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
-          {content}
-        </div>
-      </div>
-    );
-  }
 
   return content;
 };

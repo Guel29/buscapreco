@@ -1,3 +1,7 @@
+## Versão 1.0.2 — intervalo pelo administrador
+
+Atualize também a hospedagem. Em Admin → Sincronizador & Carga, o administrador pode salvar o intervalo em minutos. O integrador 1.0.2 consulta esse valor automaticamente; não precisa reiniciar para cada alteração. Na atualização do instalador, mantenha a configuração existente e inicie o serviço ao terminar. Veja [INTERVALO_SINCRONIZACAO.md](INTERVALO_SINCRONIZACAO.md).
+
 # Integrador completo como serviço do Windows
 
 Versão **1.0.1**: corrige o erro 42703 usando

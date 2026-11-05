@@ -39,3 +39,31 @@ test('ERP extraction always uses a read-only transaction and closes on failure',
   assert.deepEqual(statements[1][1], [3, 2]);
   assert.equal(statements.at(-1)[0], 'CLOSED');
 });
+
+test('remote interval is store-bound, validated and read without sending credentials in the URL', async () => {
+  const { readRemoteInterval, remainingSyncDelay } = await import('../public/erp-agent/integrador.mjs');
+  const config = { url: 'https://example.com/subdir/', token: 'private-token', id_loja: 1 };
+  let payload = { success: true, configured: true, id_loja: 1, intervalo_minutos: 5 };
+  const request = async (url, options) => {
+    assert.equal(url.pathname, '/subdir/erp-schedule.php');
+    assert.equal(url.searchParams.get('id_loja'), '1');
+    assert.ok(!String(url).includes(config.token));
+    assert.equal(options.headers['X-ERP-Token'], config.token);
+    return Response.json(payload);
+  };
+  assert.equal(await readRemoteInterval(config, request), 5);
+  payload.configured = false;
+  assert.equal(await readRemoteInterval(config, request), null, 'No cloud override preserves the installation interval.');
+  payload.configured = true;
+  for (const value of [0, -1, 1.5, '5', 1441, null]) {
+    payload.intervalo_minutos = value;
+    await assert.rejects(readRemoteInterval(config, request), /inválido/);
+  }
+  payload.intervalo_minutos = 5;
+  payload.id_loja = 2;
+  await assert.rejects(readRemoteInterval(config, request), /incompatível/);
+  await assert.rejects(readRemoteInterval(config, async () => new Response('', {status: 401})), /indisponível/);
+  assert.equal(remainingSyncDelay(100000, 10, 220000), 480000);
+  assert.equal(remainingSyncDelay(100000, 1, 220000), 0, 'Shortening an interval can make the next load due now.');
+  assert.equal(remainingSyncDelay(100000, 20, 220000), 1080000, 'Lengthening postpones the next load.');
+});
