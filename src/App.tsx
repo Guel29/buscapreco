@@ -72,18 +72,30 @@ export function App() {
     typeof navigator !== 'undefined' ? !navigator.onLine : false
   );
 
-  // Custom Kiosk Background
-  const [customBackground, setCustomBackground] = useState<string | null>(() => {
-    return localStorage.getItem('kiosk_custom_background');
-  });
+  // Images use IndexedDB, avoiding the small localStorage quota used by settings.
+  const [customBackground, setCustomBackground] = useState<string | null>(null);
+  const [backgroundReady, setBackgroundReady] = useState(false);
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      let saved = await localDB.getBackground();
+      let legacy: string | null = null;
+      try { legacy = localStorage.getItem('kiosk_custom_background'); } catch {}
+      if (!saved && legacy) {
+        await localDB.saveBackground(legacy);
+        saved = legacy;
+        try { localStorage.removeItem('kiosk_custom_background'); } catch {}
+      }
+      if (active) setCustomBackground(saved);
+    })().catch(() => {}).finally(() => { if (active) setBackgroundReady(true); });
+    return () => { active = false; };
+  }, []);
 
-  const handleUpdateBackground = (bg: string | null) => {
+  const handleUpdateBackground = async (bg: string | null) => {
+    if (!backgroundReady) throw new Error('Aguarde o carregamento do fundo.');
+    await localDB.saveBackground(bg);
+    try { localStorage.removeItem('kiosk_custom_background'); } catch {}
     setCustomBackground(bg);
-    if (bg) {
-      localStorage.setItem('kiosk_custom_background', bg);
-    } else {
-      localStorage.removeItem('kiosk_custom_background');
-    }
   };
 
   // Initial load

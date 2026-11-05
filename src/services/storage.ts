@@ -53,6 +53,30 @@ class LocalDatabase {
     return this.isInitPromise;
   }
 
+  async getBackground(): Promise<string | null> {
+    await this.init();
+    if (!this.db) throw new Error('Armazenamento do navegador indisponível.');
+    return new Promise((resolve, reject) => {
+      const tx = this.db!.transaction('config', 'readonly');
+      const request = tx.objectStore('config').get('kiosk_background');
+      tx.oncomplete = () => resolve(request.result?.value ?? null);
+      tx.onabort = () => reject(tx.error);
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+
+  async saveBackground(value: string | null): Promise<void> {
+    await this.init();
+    if (!this.db) throw new Error('Armazenamento do navegador indisponível.');
+    return new Promise((resolve, reject) => {
+      const tx = this.db!.transaction('config', 'readwrite');
+      tx.objectStore('config').put({ key: 'kiosk_background', value });
+      tx.oncomplete = () => resolve();
+      tx.onabort = () => reject(tx.error);
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+
   async saveProducts(products: Product[]): Promise<void> {
     await this.init();
     if (!this.db) return;

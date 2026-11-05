@@ -1,1 +1,9 @@
 @import "tailwindcss";
+
+@media print {
+  @page { size: 100mm 30mm; margin: 0; }
+  html, body, #root { margin: 0 !important; padding: 0 !important; width: 100mm !important; height: 30mm !important; min-height: 0 !important; overflow: hidden !important; background: white !important; }
+  body * { visibility: hidden !important; }
+  .gondola-print-label, .gondola-print-label * { visibility: visible !important; }
+  .gondola-print-label { display: block !important; position: fixed !important; inset: 0 auto auto 0 !important; width: 100mm !important; height: 30mm !important; box-sizing: border-box; overflow: hidden; z-index: 2147483647; color: black !important; background: white !important; }
+}

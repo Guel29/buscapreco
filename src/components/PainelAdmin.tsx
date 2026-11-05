@@ -33,7 +33,7 @@ interface PainelAdminProps {
   activePrinter: PrinterConfig;
   currentStoreId: number;
   customBackground?: string | null;
-  onUpdateBackground?: (bg: string | null) => void;
+  onUpdateBackground?: (bg: string | null) => Promise<void>;
   onSelectStore: (id: number) => void;
   onSaveModel: (model: LabelModel) => void;
   onSelectModel: (id: string) => void;
@@ -72,6 +72,19 @@ export const PainelAdmin: React.FC<PainelAdminProps> = ({
   const [setupToken, setSetupToken] = useState('');
   const [authBusy, setAuthBusy] = useState(false);
   const [setupError, setSetupError] = useState('');
+  const [backgroundBusy, setBackgroundBusy] = useState(false);
+  const [backgroundMessage, setBackgroundMessage] = useState('');
+  const updateBackground = async (value: string | null) => {
+    if (!onUpdateBackground) return;
+    setBackgroundBusy(true);
+    setBackgroundMessage('');
+    try {
+      await onUpdateBackground(value);
+      setBackgroundMessage(value ? 'Fundo salvo neste terminal.' : 'Fundo padrão restaurado e salvo.');
+    } catch {
+      setBackgroundMessage('Não foi possível salvar o fundo. Verifique o espaço e as permissões de armazenamento do navegador.');
+    } finally { setBackgroundBusy(false); }
+  };
   const [tokenSource, setTokenSource] = useState('config_db.json');
 
   useEffect(() => {
@@ -494,6 +507,7 @@ export const PainelAdmin: React.FC<PainelAdminProps> = ({
                   )}
                 </div>
 
+                <p role="status" className="text-sm text-neutral-300">{backgroundBusy ? 'Salvando fundo...' : backgroundMessage}</p>
                 {/* Ações de Upload e Restauração */}
                 <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
                   <label className="flex-1 w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition shadow">
@@ -502,15 +516,19 @@ export const PainelAdmin: React.FC<PainelAdminProps> = ({
                     <input
                       type="file"
                       accept="image/*"
+                      disabled={backgroundBusy}
                       className="hidden"
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (!file) return;
+                        e.target.value = '';
+                        if (!file.type.startsWith('image/')) { setBackgroundMessage('Selecione uma imagem.'); return; }
                         const reader = new FileReader();
+                        reader.onerror = () => setBackgroundMessage('Não foi possível ler a imagem.');
                         reader.onload = (event) => {
                           const result = event.target?.result as string;
                           if (result && onUpdateBackground) {
-                            onUpdateBackground(result);
+                            void updateBackground(result);
                           }
                         };
                         reader.readAsDataURL(file);
@@ -520,7 +538,8 @@ export const PainelAdmin: React.FC<PainelAdminProps> = ({
 
                   {customBackground && (
                     <button
-                      onClick={() => onUpdateBackground && onUpdateBackground(null)}
+                      disabled={backgroundBusy}
+                      onClick={() => void updateBackground(null)}
                       className="w-full sm:w-auto py-3 px-4 bg-neutral-800 hover:bg-red-950/60 hover:text-red-300 text-neutral-300 border border-neutral-700 hover:border-red-800 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer transition"
                     >
                       <Trash2 className="w-4 h-4" />

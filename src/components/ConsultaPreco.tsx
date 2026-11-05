@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Product, LabelModel, PrinterConfig, SystemStatus } from '../types';
 import { searchProduct, sendDirectPrint, fetchSystemStatus, triggerInstantLoad } from '../services/api';
+import JsBarcode from 'jsbarcode';
 import { formatPrice } from '../services/argoxPrinter';
 import { kioskShortcut } from '../utils/kioskShortcuts';
 import { SupermarketKioskBackdrop } from './SmartinhoHero';
@@ -1030,6 +1031,7 @@ export const ConsultaPreco: React.FC<ConsultaPrecoProps> = ({
               </div>
             )}
 
+            <p className="text-xs text-neutral-400">Argox USB: abra este site no computador conectado à impressora e use “Imprimir pelo Windows”. Selecione a Argox, papel 100 × 30 mm, escala 100%, sem margens e sem cabeçalhos. Ajuste as cópias no diálogo do Windows.</p>
             {/* Ações */}
             <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-3 border-t border-neutral-800">
               <button
@@ -1039,7 +1041,7 @@ export const ConsultaPreco: React.FC<ConsultaPrecoProps> = ({
                 title="Imprime a etiqueta usando o diálogo de impressão do navegador ou gera PDF"
               >
                 <FileText className="w-4 h-4 text-cyan-400" />
-                <span>Imprimir no Navegador (PDF)</span>
+                <span>Imprimir pelo Windows / Argox USB</span>
               </button>
 
               <button
@@ -1058,7 +1060,7 @@ export const ConsultaPreco: React.FC<ConsultaPrecoProps> = ({
 
       {/* Printable Area for window.print() */}
       {currentProduct && (
-        <div className="hidden print:block print:fixed print:top-0 print:left-0 print:w-[100mm] print:h-[30mm] print:p-2 print:bg-white print:text-black">
+        <div className="gondola-print-label hidden print:block print:fixed print:top-0 print:left-0 print:w-[100mm] print:h-[30mm] print:p-2 print:bg-white print:text-black">
           <div style={{ fontSize: '10px', textTransform: 'uppercase', fontWeight: 'bold' }}>
             {currentStoreName}
           </div>
@@ -1070,7 +1072,11 @@ export const ConsultaPreco: React.FC<ConsultaPrecoProps> = ({
               R$ {Number(currentProduct.preco).toFixed(2).replace('.', ',')}
             </div>
             <div style={{ fontSize: '10px', fontFamily: 'monospace', textAlign: 'right' }}>
-              <div>* {currentProduct.codigo_barras} *</div>
+              <svg aria-label={`Código de barras ${currentProduct.codigo_barras}`} style={{ width: '38mm', height: '12mm' }} ref={(node) => {
+                if (!node) return;
+                try { JsBarcode(node, currentProduct.codigo_barras, { format: 'CODE128', height: 28, fontSize: 10, margin: 0, displayValue: true }); }
+                catch { node.textContent = ''; }
+              }} />
               <div>Cód: {currentProduct.codigo_interno}</div>
             </div>
           </div>
